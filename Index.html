@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1f2933;
+        --muted: #64748b;
+        --line: #e5e9ed;
+        --line-strong: #d4dce3;
+        --panel: #ffffff;
+        --page: #eef3f1;
+        --header: #f7faf9;
+        --accent: #0b7f56;
+        --accent-ink: #ffffff;
+        --danger: #b3261e;
+        --shadow: 0 16px 44px rgba(35, 55, 48, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        background: var(--page);
+        color: var(--ink);
+        font-family: Arial, "Noto Sans Thai", sans-serif;
+        font-size: 14px;
+        letter-spacing: 0;
+      }
+
+      button {
+        align-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--ink);
+        cursor: pointer;
+        display: inline-flex;
+        font: inherit;
+        font-weight: 600;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 14px;
+      }
+
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-ink);
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.54;
+      }
+
+      .app-shell {
+        margin: 0 auto;
+        max-width: none;
+        min-width: 100%;
+        padding: 24px;
+        width: max-content;
+      }
+
+      .app-header {
+        align-items: flex-start;
+        display: flex;
+        gap: 18px;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .title-group {
+        min-width: 0;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin: 0 0 5px;
+      }
+
+      .title-group h1 {
+        font-size: 28px;
+        line-height: 1.22;
+        margin: 0;
+      }
+
+      .title-group p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 5px 0 0;
+      }
+
+      .toolbar {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .roster-card {
+        background: var(--panel);
+        border: 1px solid rgba(212, 220, 227, 0.9);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        min-width: calc(100vw - 48px);
+        padding: 14px;
+        width: var(--roster-width, calc(100vw - 48px));
+      }
+
+      .roster-meta {
+        align-items: center;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .statusbar {
+        align-items: center;
+        color: var(--muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .statusbar span {
+        min-width: 0;
+      }
+
+      .status-pill {
+        background: #edf6f2;
+        border: 1px solid #cce4d9;
+        border-radius: 999px;
+        color: #176448;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 10px;
+      }
+
+      .table-wrap {
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        max-height: calc(100vh - 196px);
+        min-height: 420px;
+        overflow: auto;
+        position: relative;
+        width: 100%;
+      }
+
+      .table-wrap::-webkit-scrollbar {
+        height: 12px;
+        width: 12px;
+      }
+
+      .table-wrap::-webkit-scrollbar-thumb {
+        background: #bdc9d1;
+        border: 3px solid #f6f8f9;
+        border-radius: 999px;
+      }
+
+      .table-wrap::-webkit-scrollbar-track {
+        background: #f6f8f9;
+      }
+
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+        width: max-content;
+      }
+
+      td {
+        border-bottom: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+        color: var(--cell-text, var(--ink)) !important;
+        height: 34px;
+        line-height: 1.25;
+        max-width: 280px;
+        min-width: 76px;
+        overflow: hidden;
+        padding: 5px 7px;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+
+      tbody tr:hover td {
+        box-shadow: inset 0 0 0 999px rgba(11, 127, 86, 0.035);
+      }
+
+      td:not(:empty):hover {
+        box-shadow:
+          inset 0 0 0 999px rgba(11, 127, 86, 0.055),
+          inset 0 0 0 1px rgba(11, 127, 86, 0.16);
+      }
+
+      .cell-hidden-margin {
+        display: none;
+      }
+
+      .cell-sequence {
+        min-width: 64px;
+        text-align: center;
+      }
+
+      .cell-name {
+        min-width: 174px;
+      }
+
+      .cell-nickname {
+        min-width: 86px;
+      }
+
+      .cell-date {
+        min-width: 140px;
+      }
+
+      .cell-position {
+        min-width: 190px;
+      }
+
+      .cell-team {
+        min-width: 140px;
+      }
+
+      .cell-day {
+        min-width: 72px;
+        text-align: center;
+      }
+
+      .cell-note {
+        min-width: 260px;
+      }
+
+      .cell-spacer {
+        min-width: 22px;
+        width: 22px;
+      }
+
+      .sticky-col {
+        position: sticky;
+        z-index: 12;
+      }
+
+      .cell-sequence.sticky-col {
+        left: 0;
+      }
+
+      .cell-name.sticky-col {
+        left: 64px;
+      }
+
+      .metadata-row td,
+      .calendar-row td,
+      .weekday-row td {
+        background: var(--header) !important;
+        color: #334155 !important;
+        font-weight: 700 !important;
+      }
+
+      .month-selector-cell {
+        cursor: pointer;
+        outline: none;
+        position: relative;
+      }
+
+      .month-selector-cell::after {
+        content: "เลือกเดือน";
+        background: #dcefe7;
+        border: 1px solid #bbdccd;
+        border-radius: 999px;
+        color: #176448;
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 10px;
+        padding: 2px 8px;
+      }
+
+      .month-selector-cell:hover,
+      .month-selector-cell:focus {
+        box-shadow: inset 0 0 0 2px rgba(11, 127, 86, 0.26);
+      }
+
+      .calendar-row td,
+      .weekday-row td {
+        position: sticky;
+        z-index: 18;
+      }
+
+      .calendar-row td {
+        top: 0;
+      }
+
+      .weekday-row td {
+        top: 34px;
+      }
+
+      .calendar-row .sticky-col,
+      .weekday-row .sticky-col {
+        z-index: 24;
+      }
+
+      .source-title-row td:not(:empty) {
+        background: #176448 !important;
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 800 !important;
+        letter-spacing: 0;
+      }
+
+      .section-row td {
+        border-top: 10px solid #f4f7f6;
+        font-weight: 800 !important;
+        height: 42px;
+      }
+
+      .section-row td:not(:empty) {
+        background: #e7f2ed !important;
+        color: #164f3b !important;
+      }
+
+      .blank-row td {
+        height: 28px;
+      }
+
+      .shift-cell {
+        background: #f2f6f8 !important;
+        padding: 4px;
+        text-align: center;
+      }
+
+      .shift-cell.is-empty {
+        background: #f6f9fb !important;
+      }
+
+      .shift-badge {
+        align-items: center;
+        border-radius: 6px;
+        color: var(--badge-text, #ffffff) !important;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        justify-content: center;
+        line-height: 1.1;
+        min-height: 22px;
+        min-width: 48px;
+        padding: 4px 7px;
+        transition: box-shadow 120ms ease, transform 120ms ease;
+        width: 100%;
+      }
+
+      .shift-cell:hover .shift-badge {
+        box-shadow: 0 5px 12px rgba(15, 23, 42, 0.16);
+        transform: translateY(-1px);
+      }
+
+      .loading-overlay {
+        align-items: center;
+        background: rgba(238, 243, 241, 0.92);
+        display: flex;
+        flex-direction: column;
+        inset: 0;
+        justify-content: center;
+        padding: 24px;
+        position: fixed;
+        text-align: center;
+        z-index: 100;
+      }
+
+      .loading-overlay[hidden] {
+        display: none;
+      }
+
+      .loader {
+        animation: spin 0.9s linear infinite;
+        border: 4px solid #cdd8d4;
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        height: 46px;
+        width: 46px;
+      }
+
+      .loading-overlay strong {
+        font-size: 17px;
+        margin-top: 16px;
+      }
+
+      .loading-overlay span {
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .modal-overlay {
+        align-items: center;
+        background: rgba(31, 41, 51, 0.42);
+        display: flex;
+        inset: 0;
+        justify-content: center;
+        padding: 24px;
+        position: fixed;
+        z-index: 90;
+      }
+
+      .modal-overlay[hidden] {
+        display: none;
+      }
+
+      .month-modal {
+        background: var(--panel);
+        border-radius: 8px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+        max-width: 560px;
+        padding: 18px;
+        width: min(100%, 560px);
+      }
+
+      .month-modal-header {
+        align-items: flex-start;
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .month-modal-header h2 {
+        font-size: 20px;
+        line-height: 1.3;
+        margin: 0;
+      }
+
+      .month-modal-header p {
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+
+      .month-grid {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .month-option {
+        align-items: center;
+        background: #f7faf9;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        color: var(--ink);
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-height: 66px;
+        padding: 10px;
+      }
+
+      .month-option.is-selected {
+        background: #e5f4ee;
+        border-color: #71b899;
+        color: #176448;
+      }
+
+      .month-option:disabled {
+        background: #f1f4f6;
+        border-color: #e2e8ee;
+        color: #94a3b8;
+        opacity: 1;
+      }
+
+      .month-option small {
+        color: currentColor;
+        font-weight: 500;
+      }
+
+      .error {
+        color: var(--danger);
+        font-weight: 700;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .app-shell {
+          width: 100%;
+          padding: 14px;
+        }
+
+        .app-header,
+        .roster-meta {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .title-group h1 {
+          font-size: 24px;
+        }
+
+        .toolbar {
+          justify-content: flex-start;
+        }
+
+        button {
+          flex: 1 1 auto;
+        }
+
+        .table-wrap {
+          max-height: calc(100vh - 246px);
+          min-height: 360px;
+        }
+
+        .month-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="title-group">
+          <p class="eyebrow">SC Shift</p>
+          <h1 id="pageTitle">ตารางเวร</h1>
+          <p id="pageSubtitle">กำลังเตรียมข้อมูล</p>
+        </div>
+        <div class="toolbar" aria-label="เครื่องมือ">
+          <button type="button" disabled>ตัวกรอง</button>
+          <button id="monthButton" type="button">เลือกเดือน</button>
+          <button type="button" disabled>โหมดแก้ไข</button>
+          <button type="button" disabled>ส่งออก</button>
+          <button class="primary" id="refreshButton" type="button">โหลดใหม่</button>
+        </div>
+      </header>
+
+      <section class="roster-card" aria-label="ตารางเวรประจำเดือน">
+        <div class="roster-meta">
+          <div class="statusbar" aria-live="polite">
+            <span class="status-pill" id="sheetStatus">กำลังอ่านข้อมูลจาก Google Sheets</span>
+            <span id="fetchStatus"></span>
+          </div>
+        </div>
+
+        <main class="table-wrap" id="tableWrap" aria-label="ตารางเวร">
+          <table id="worksheetTable"></table>
+        </main>
+      </section>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+      <div class="loader" aria-hidden="true"></div>
+      <strong>กำลังอ่านตารางเวรจาก Google Sheets</strong>
+      <span>โปรดรอสักครู่</span>
+    </div>
+
+    <div class="modal-overlay" id="monthModal" hidden>
+      <section class="month-modal" role="dialog" aria-modal="true" aria-labelledby="monthModalTitle">
+        <div class="month-modal-header">
+          <div>
+            <h2 id="monthModalTitle">เลือกเดือน ปี 2026</h2>
+            <p>เลือก worksheet ตารางเวรที่ต้องการดู</p>
+          </div>
+          <button id="monthModalClose" type="button" aria-label="ปิด">ปิด</button>
+        </div>
+        <div class="month-grid" id="monthGrid"></div>
+      </section>
+    </div>
+
+    <script>
+      const elements = {
+        fetchStatus: document.getElementById('fetchStatus'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        monthButton: document.getElementById('monthButton'),
+        monthGrid: document.getElementById('monthGrid'),
+        monthModal: document.getElementById('monthModal'),
+        monthModalClose: document.getElementById('monthModalClose'),
+        pageSubtitle: document.getElementById('pageSubtitle'),
+        pageTitle: document.getElementById('pageTitle'),
+        refreshButton: document.getElementById('refreshButton'),
+        sheetStatus: document.getElementById('sheetStatus'),
+        worksheetTable: document.getElementById('worksheetTable'),
+      };
+      const state = {
+        currentSheetName: '',
+        monthOptions: [],
+        scheduleStartColumn: 8,
+        scheduleEndColumn: 37,
+        noteStartColumn: 39,
+      };
+
+      elements.refreshButton.addEventListener('click', loadWorksheet);
+      elements.monthButton.addEventListener('click', openMonthModal);
+      elements.monthModalClose.addEventListener('click', closeMonthModal);
+      elements.monthModal.addEventListener('click', (event) => {
+        if (event.target === elements.monthModal) {
+          closeMonthModal();
+        }
+      });
+      window.addEventListener('resize', () => syncRosterWidth(elements.worksheetTable));
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeMonthModal();
+        }
+      });
+      loadWorksheet();
+
+      function loadWorksheet(sheetName) {
+        setLoading(true);
+        elements.sheetStatus.classList.remove('error');
+        elements.sheetStatus.textContent = 'กำลังอ่านข้อมูล';
+        elements.fetchStatus.textContent = '';
+        const targetSheetName = sheetName || state.currentSheetName || '';
+
+        google.script.run
+          .withSuccessHandler(renderWorksheet)
+          .withFailureHandler(renderError)
+          .getWorksheetWebAppData(targetSheetName);
+      }
+
+      function renderWorksheet(data) {
+        state.currentSheetName = data.sheetName;
+        state.monthOptions = data.monthOptions || [];
+        updateScheduleColumnBounds(data);
+        elements.pageTitle.textContent = 'ตารางเวร';
+        elements.pageSubtitle.textContent = getMonthSubtitle(data);
+        elements.sheetStatus.textContent = `${data.rowCount} แถว, ${data.columnCount} คอลัมน์`;
+        elements.fetchStatus.textContent = `อ่านล่าสุด ${data.fetchedAt}`;
+        updateMonthButton();
+        renderMonthOptions();
+
+        const mergeState = buildMergeState(data.merges || []);
+        const table = document.createElement('table');
+        const body = document.createElement('tbody');
+
+        data.rows.forEach((row) => {
+          const tr = document.createElement('tr');
+          const rowClass = getRowClass(row);
+          tr.className = rowClass;
+
+          row.cells.forEach((cell, columnIndex) => {
+            const key = `${cell.row}:${cell.column}`;
+            if (mergeState.skip.has(key) || shouldSuppressCell(cell)) {
+              return;
+            }
+
+            const td = document.createElement('td');
+            const span = mergeState.anchor.get(key);
+            if (span) {
+              td.rowSpan = span.rowSpan;
+              td.colSpan = getVisibleColSpan(span);
+            }
+
+            td.className = getCellClass(cell, columnIndex, rowClass);
+            td.title = `${cell.a1}${cell.value ? `: ${cell.value}` : ''}`;
+            applyCellStyle(td, cell, rowClass);
+            renderCellContent(td, cell, rowClass);
+            bindMonthCell(td, cell, rowClass);
+            tr.appendChild(td);
+          });
+
+          body.appendChild(tr);
+        });
+
+        table.appendChild(body);
+        elements.worksheetTable.replaceWith(table);
+        table.id = 'worksheetTable';
+        elements.worksheetTable = table;
+        syncRosterWidth(table);
+        setLoading(false);
+      }
+
+      function renderError(error) {
+        elements.sheetStatus.classList.add('error');
+        elements.sheetStatus.textContent = error && error.message ? error.message : String(error);
+        elements.fetchStatus.textContent = '';
+        setLoading(false);
+      }
+
+      function setLoading(isLoading) {
+        elements.refreshButton.disabled = isLoading;
+        elements.monthButton.disabled = isLoading;
+        elements.loadingOverlay.hidden = !isLoading;
+      }
+
+      function openMonthModal() {
+        renderMonthOptions();
+        elements.monthModal.hidden = false;
+      }
+
+      function closeMonthModal() {
+        elements.monthModal.hidden = true;
+      }
+
+      function updateMonthButton() {
+        const selected = state.monthOptions.find((option) => option.sheetName === state.currentSheetName);
+        elements.monthButton.textContent = selected ? selected.thaiMonthName : 'เลือกเดือน';
+      }
+
+      function renderMonthOptions() {
+        elements.monthGrid.replaceChildren();
+
+        state.monthOptions.forEach((option) => {
+          const button = document.createElement('button');
+          button.className = 'month-option';
+          if (option.sheetName === state.currentSheetName) {
+            button.classList.add('is-selected');
+          }
+
+          button.type = 'button';
+          button.disabled = !option.available;
+          button.innerHTML = `<span>${option.thaiMonthName}</span><small>${option.available ? option.yearBE : 'ยังไม่มีชีต'}</small>`;
+          button.addEventListener('click', () => {
+            if (!option.available || option.sheetName === state.currentSheetName) {
+              closeMonthModal();
+              return;
+            }
+
+            closeMonthModal();
+            loadWorksheet(option.sheetName);
+          });
+          elements.monthGrid.appendChild(button);
+        });
+      }
+
+      function syncRosterWidth(table) {
+        const rosterCard = document.querySelector('.roster-card');
+        if (!rosterCard) {
+          return;
+        }
+
+        const viewportPadding = window.matchMedia('(max-width: 720px)').matches ? 28 : 48;
+        const minimumWidth = window.innerWidth - viewportPadding;
+        const tableWidth = table.scrollWidth + 30;
+        rosterCard.style.setProperty('--roster-width', `${Math.max(minimumWidth, tableWidth)}px`);
+      }
+
+      function buildMergeState(merges) {
+        const anchor = new Map();
+        const skip = new Set();
+
+        merges.forEach((merge) => {
+          const anchorKey = `${merge.row}:${merge.column}`;
+          anchor.set(anchorKey, merge);
+
+          for (let row = merge.row; row < merge.row + merge.rowSpan; row += 1) {
+            for (let column = merge.column; column < merge.column + merge.colSpan; column += 1) {
+              const key = `${row}:${column}`;
+              if (key !== anchorKey) {
+                skip.add(key);
+              }
+            }
+          }
+        });
+
+        return { anchor, skip };
+      }
+
+      function getRowClass(row) {
+        const label = getCellValue(row, 2);
+        const hasName = getCellValue(row, 3);
+
+        if (row.rowNumber === 2) {
+          return 'source-title-row';
+        }
+
+        if (row.rowNumber === 3) {
+          return 'metadata-row';
+        }
+
+        if (row.rowNumber === 4) {
+          return 'calendar-row';
+        }
+
+        if (row.rowNumber === 5) {
+          return 'weekday-row';
+        }
+
+        if (isSectionLabel(label, hasName)) {
+          return 'section-row';
+        }
+
+        if (row.cells.every((cell) => !cell.value)) {
+          return 'blank-row';
+        }
+
+        return 'data-row';
+      }
+
+      function getCellClass(cell, columnIndex, rowClass) {
+        const classes = [];
+
+        if (cell.column === 1) {
+          classes.push('cell-hidden-margin');
+        }
+
+        if (cell.column === 2) {
+          classes.push('cell-sequence', 'sticky-col');
+        }
+
+        if (cell.column === 3) {
+          classes.push('cell-name', 'sticky-col');
+        }
+
+        if (cell.column === 4) {
+          classes.push('cell-nickname');
+        }
+
+        if (cell.column === 5) {
+          classes.push('cell-date');
+        }
+
+        if (cell.column === 6) {
+          classes.push('cell-position');
+        }
+
+        if (cell.column === 7) {
+          classes.push('cell-team');
+        }
+
+        if (isScheduleColumn(cell)) {
+          classes.push('cell-day');
+
+          if (isShiftValueCell(cell, rowClass)) {
+            classes.push('shift-cell');
+          }
+
+          if (!cell.value) {
+            classes.push('is-empty');
+          }
+        }
+
+        if (isSpacerColumn(cell)) {
+          classes.push('cell-spacer');
+        }
+
+        if (cell.column >= state.noteStartColumn) {
+          classes.push('cell-note');
+        }
+
+        return classes.join(' ');
+      }
+
+      function applyCellStyle(td, cell, rowClass) {
+        const isShift = isShiftValueCell(cell, rowClass);
+        const isHeaderLike =
+          rowClass === 'source-title-row' ||
+          rowClass === 'metadata-row' ||
+          rowClass === 'calendar-row' ||
+          rowClass === 'weekday-row' ||
+          rowClass === 'section-row';
+
+        if (!isShift && !isHeaderLike) {
+          const background = normalizeQuietBackground(cell.background);
+          td.style.backgroundColor = background;
+          td.style.setProperty('--cell-text', readableTextColor(background));
+        }
+
+        td.style.fontWeight = isShift ? '700' : cell.fontWeight || 'normal';
+        td.style.textAlign = isScheduleColumn(cell) ? 'center' : cell.horizontalAlignment || '';
+        td.style.verticalAlign = cell.verticalAlignment || '';
+      }
+
+      function renderCellContent(td, cell, rowClass) {
+        if (!isShiftValueCell(cell, rowClass)) {
+          td.textContent = cell.value || '';
+          return;
+        }
+
+        const badge = document.createElement('span');
+        const badgeBackground = normalizeBadgeBackground(cell.background);
+        badge.className = 'shift-badge';
+        badge.textContent = cell.value;
+        badge.style.backgroundColor = badgeBackground;
+        badge.style.setProperty('--badge-text', readableTextColor(badgeBackground));
+        td.appendChild(badge);
+      }
+
+      function bindMonthCell(td, cell, rowClass) {
+        if (!isMonthSelectorCell(cell, rowClass)) {
+          return;
+        }
+
+        td.classList.add('month-selector-cell');
+        td.setAttribute('role', 'button');
+        td.setAttribute('tabindex', '0');
+        td.setAttribute('aria-label', 'เลือกเดือน');
+        td.addEventListener('click', openMonthModal);
+        td.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openMonthModal();
+          }
+        });
+      }
+
+      function getMonthSubtitle(data) {
+        const monthCell = data.rows && data.rows[2] && data.rows[2].cells[7];
+        const month = monthCell && monthCell.value ? monthCell.value.replace('เดือน', '').trim() : data.sheetName;
+        return `${month || data.sheetName} • ${data.spreadsheetName || ''}`;
+      }
+
+      function updateScheduleColumnBounds(data) {
+        const calendarRow = (data.rows || []).find((row) => row.rowNumber === 4);
+        let lastDayColumn = 37;
+        let noteStartColumn = 39;
+
+        if (calendarRow) {
+          calendarRow.cells.forEach((cell) => {
+            const dayNumber = Number(cell.value);
+            if (cell.column >= 8 && cell.column <= 38 && Number.isInteger(dayNumber) && dayNumber >= 1 && dayNumber <= 31) {
+              lastDayColumn = Math.max(lastDayColumn, cell.column);
+            }
+
+            if (String(cell.value || '').indexOf('นักขัตฤกษ์') !== -1) {
+              noteStartColumn = cell.column;
+            }
+          });
+        }
+
+        state.scheduleStartColumn = 8;
+        state.scheduleEndColumn = lastDayColumn;
+        state.noteStartColumn = Math.max(noteStartColumn, lastDayColumn + 1);
+      }
+
+      function getCellValue(row, column) {
+        const cell = row.cells.find((item) => item.column === column);
+        return cell && cell.value ? cell.value.trim() : '';
+      }
+
+      function isSectionLabel(label, hasName) {
+        if (!label || hasName) {
+          return false;
+        }
+
+        return (
+          label === 'เภสัชกร' ||
+          label === 'ฝ่ายขายและการตลาด' ||
+          label === 'หมายเหตุ' ||
+          /^0\d{2}\s/.test(label)
+        );
+      }
+
+      function isScheduleColumn(cell) {
+        return cell.column >= state.scheduleStartColumn && cell.column <= state.scheduleEndColumn;
+      }
+
+      function isSpacerColumn(cell) {
+        return cell.column > state.scheduleEndColumn && cell.column < state.noteStartColumn;
+      }
+
+      function isMonthSelectorCell(cell, rowClass) {
+        return rowClass === 'metadata-row' && cell.column === 8 && cell.value.indexOf('เดือน') === 0;
+      }
+
+      function isShiftValueCell(cell, rowClass) {
+        return (
+          isScheduleColumn(cell) &&
+          Boolean(cell.value) &&
+          rowClass !== 'metadata-row' &&
+          rowClass !== 'calendar-row' &&
+          rowClass !== 'weekday-row' &&
+          rowClass !== 'section-row' &&
+          rowClass !== 'source-title-row'
+        );
+      }
+
+      function shouldSuppressCell(cell) {
+        return cell.column === 1 && !cell.value;
+      }
+
+      function getVisibleColSpan(span) {
+        if (span.column === 1 && span.colSpan > 1) {
+          return span.colSpan - 1;
+        }
+
+        return span.colSpan;
+      }
+
+      function normalizeQuietBackground(background) {
+        if (!background || isNearWhite(background)) {
+          return '#ffffff';
+        }
+
+        return mixWithWhite(background, 0.22);
+      }
+
+      function normalizeBadgeBackground(background) {
+        if (!background || isNearWhite(background)) {
+          return '#e8edf0';
+        }
+
+        return background;
+      }
+
+      function readableTextColor(background) {
+        const rgb = parseHexColor(background);
+        if (!rgb) {
+          return '#1f2933';
+        }
+
+        const luminance = relativeLuminance(rgb);
+        return luminance > 0.54 ? '#17202a' : '#ffffff';
+      }
+
+      function isNearWhite(hex) {
+        const rgb = parseHexColor(hex);
+        if (!rgb) {
+          return true;
+        }
+
+        return rgb.r > 246 && rgb.g > 246 && rgb.b > 246;
+      }
+
+      function parseHexColor(hex) {
+        if (!hex || typeof hex !== 'string' || !/^#[0-9a-f]{6}$/i.test(hex)) {
+          return null;
+        }
+
+        return {
+          r: parseInt(hex.slice(1, 3), 16),
+          g: parseInt(hex.slice(3, 5), 16),
+          b: parseInt(hex.slice(5, 7), 16),
+        };
+      }
+
+      function mixWithWhite(hex, amount) {
+        const rgb = parseHexColor(hex);
+        if (!rgb) {
+          return '#ffffff';
+        }
+
+        const mix = (value) => Math.round(value + (255 - value) * amount);
+        return toHexColor(mix(rgb.r), mix(rgb.g), mix(rgb.b));
+      }
+
+      function toHexColor(r, g, b) {
+        return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('')}`;
+      }
+
+      function relativeLuminance(rgb) {
+        const convert = (value) => {
+          const channel = value / 255;
+          return channel <= 0.03928
+            ? channel / 12.92
+            : Math.pow((channel + 0.055) / 1.055, 2.4);
+        };
+
+        return 0.2126 * convert(rgb.r) + 0.7152 * convert(rgb.g) + 0.0722 * convert(rgb.b);
+      }
+    </script>
+  </body>
+</html>

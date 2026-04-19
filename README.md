@@ -47,14 +47,19 @@ Important server functions:
   schedule values/colors in the roster grid while preserving the overall sheet
   structure. If a previous run failed after creating a future-month tab, the
   function repairs that partial tab when its month label is still wrong.
+- `repairScheduleMonthLayouts2026()`: Repairs existing 2026 month tabs without
+  clearing real roster data. It keeps H:AL reserved for days 1-31, moves the
+  note/holiday area to the right of that grid when needed, clears only
+  impossible future-day cells for 28/30-day months, clears stray day/weekday
+  headers from note columns, and breaks merged ranges anchored inside the
+  schedule-day body.
 
 Data details:
 
-- The schedule day columns start at column H. The web UI now detects the last
-  day column from the date header row, so 30-day months end at AK and 31-day
-  months end at AL. For generated 31-day month tabs, the generator inserts a
-  real day-31 column before the note/holiday area instead of reusing the old
-  blank separator column from the 30-day April template.
+- The schedule day columns start at column H and always reserve columns H:AL
+  for days 1-31. Months with fewer than 31 days keep blank day columns so the
+  note/holiday area stays aligned across February, 30-day months, and 31-day
+  months.
 - Employee metadata is mostly in columns B through G.
 - Notes/holiday leave/summary fields are to the right of the day columns.
 - The web app intentionally renders the raw worksheet matrix instead of only
@@ -110,6 +115,12 @@ not overwritten when their month label is already correct.
 Run `repairBlankMonthlySheetsMayToDec2026` as a convenient alias when a previous
 generation attempt failed partway through. It runs the same repair-safe
 generator.
+
+Run `repairScheduleMonthLayouts2026` when existing month tabs have shifted
+note/holiday columns or merged cells inside the day grid. This is non-destructive
+for real roster values; it only inserts missing reserved day columns, clears
+future-day cells that cannot exist for that month, clears duplicate day/weekday
+headers in note columns, and breaks merges anchored in the schedule-day body.
 
 ## Web app
 

@@ -59,6 +59,12 @@
         color: var(--accent-ink);
       }
 
+      button.edit-mode-button.is-active {
+        background: #143c34;
+        border-color: #143c34;
+        color: #ffffff;
+      }
+
       button:disabled {
         cursor: default;
         opacity: 0.54;
@@ -209,6 +215,38 @@
         box-shadow:
           inset 0 0 0 999px rgba(11, 127, 86, 0.055),
           inset 0 0 0 1px rgba(11, 127, 86, 0.16);
+      }
+
+      .is-edit-mode .editable-cell {
+        cursor: pointer;
+        position: relative;
+      }
+
+      .is-edit-mode .editable-cell:hover {
+        box-shadow:
+          inset 0 0 0 999px rgba(11, 127, 86, 0.08),
+          inset 0 0 0 2px rgba(11, 127, 86, 0.34);
+      }
+
+      .is-edit-mode .editable-cell:hover::after {
+        background: #143c34;
+        border-radius: 4px;
+        color: #ffffff;
+        content: "แก้ไข";
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1;
+        padding: 3px 5px;
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        z-index: 30;
+      }
+
+      .is-edit-mode .editable-cell.is-selected {
+        box-shadow:
+          inset 0 0 0 999px rgba(11, 127, 86, 0.12),
+          inset 0 0 0 3px rgba(11, 127, 86, 0.62);
       }
 
       .cell-hidden-margin {
@@ -370,6 +408,41 @@
       .shift-cell:hover .shift-badge {
         box-shadow: 0 5px 12px rgba(15, 23, 42, 0.16);
         transform: translateY(-1px);
+      }
+
+      .edit-action-bar {
+        align-items: center;
+        background: #f7faf9;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding: 10px;
+      }
+
+      .edit-action-summary {
+        color: var(--ink);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .edit-action-summary strong {
+        font-weight: 800;
+      }
+
+      .edit-action-summary span {
+        color: var(--muted);
+      }
+
+      .edit-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
       }
 
       .loading-overlay {
@@ -545,7 +618,7 @@
         <div class="toolbar" aria-label="เครื่องมือ">
           <button type="button" disabled>ตัวกรอง</button>
           <button id="monthButton" type="button">เลือกเดือน</button>
-          <button type="button" disabled>โหมดแก้ไข</button>
+          <button class="edit-mode-button" id="editModeButton" type="button" aria-pressed="false">โหมดแก้ไข</button>
           <button type="button" disabled>ส่งออก</button>
           <button class="primary" id="refreshButton" type="button">โหลดใหม่</button>
         </div>
@@ -562,6 +635,20 @@
         <main class="table-wrap" id="tableWrap" aria-label="ตารางเวร">
           <table id="worksheetTable"></table>
         </main>
+
+        <div class="edit-action-bar" id="editActionBar" hidden>
+          <div class="edit-action-summary">
+            <strong>กำลังแก้ไข</strong>
+            <span id="selectedCellLabel">ยังไม่ได้เลือก cell</span>
+            <span id="selectedRawCode">Raw code: -</span>
+          </div>
+          <div class="edit-action-buttons" aria-label="คำสั่งแก้ไข">
+            <button id="editChangeButton" type="button" disabled>เปลี่ยน</button>
+            <button id="editClearButton" type="button" disabled>ล้าง</button>
+            <button id="editCancelButton" type="button" disabled>ยกเลิก</button>
+            <button class="primary" id="editConfirmButton" type="button" disabled>ยืนยัน</button>
+          </div>
+        </div>
       </section>
     </div>
 
@@ -586,6 +673,12 @@
 
     <script>
       const elements = {
+        editActionBar: document.getElementById('editActionBar'),
+        editCancelButton: document.getElementById('editCancelButton'),
+        editChangeButton: document.getElementById('editChangeButton'),
+        editClearButton: document.getElementById('editClearButton'),
+        editConfirmButton: document.getElementById('editConfirmButton'),
+        editModeButton: document.getElementById('editModeButton'),
         fetchStatus: document.getElementById('fetchStatus'),
         loadingOverlay: document.getElementById('loadingOverlay'),
         monthButton: document.getElementById('monthButton'),
@@ -595,17 +688,26 @@
         pageSubtitle: document.getElementById('pageSubtitle'),
         pageTitle: document.getElementById('pageTitle'),
         refreshButton: document.getElementById('refreshButton'),
+        selectedCellLabel: document.getElementById('selectedCellLabel'),
+        selectedRawCode: document.getElementById('selectedRawCode'),
         sheetStatus: document.getElementById('sheetStatus'),
         worksheetTable: document.getElementById('worksheetTable'),
       };
       const state = {
+        currentData: null,
         currentSheetName: '',
+        editMode: false,
         monthOptions: [],
+        selectedCell: null,
         scheduleStartColumn: 8,
-        scheduleEndColumn: 37,
+        scheduleEndColumn: 38,
+        reservedDayEndColumn: 38,
+        defaultNoteStartColumn: 39,
         noteStartColumn: 39,
       };
 
+      elements.editModeButton.addEventListener('click', toggleEditMode);
+      elements.editCancelButton.addEventListener('click', clearSelectedCell);
       elements.refreshButton.addEventListener('click', loadWorksheet);
       elements.monthButton.addEventListener('click', openMonthModal);
       elements.monthModalClose.addEventListener('click', closeMonthModal);
@@ -624,6 +726,8 @@
 
       function loadWorksheet(sheetName) {
         setLoading(true);
+        state.selectedCell = null;
+        updateEditModeUi();
         elements.sheetStatus.classList.remove('error');
         elements.sheetStatus.textContent = 'กำลังอ่านข้อมูล';
         elements.fetchStatus.textContent = '';
@@ -636,6 +740,7 @@
       }
 
       function renderWorksheet(data) {
+        state.currentData = data;
         state.currentSheetName = data.sheetName;
         state.monthOptions = data.monthOptions || [];
         updateScheduleColumnBounds(data);
@@ -673,6 +778,7 @@
             applyCellStyle(td, cell, rowClass);
             renderCellContent(td, cell, rowClass);
             bindMonthCell(td, cell, rowClass);
+            bindEditableCell(td, cell, rowClass);
             tr.appendChild(td);
           });
 
@@ -680,10 +786,12 @@
         });
 
         table.appendChild(body);
+        table.classList.toggle('is-edit-mode', state.editMode);
         elements.worksheetTable.replaceWith(table);
         table.id = 'worksheetTable';
         elements.worksheetTable = table;
         syncRosterWidth(table);
+        updateEditModeUi();
         setLoading(false);
       }
 
@@ -695,9 +803,55 @@
       }
 
       function setLoading(isLoading) {
+        elements.editModeButton.disabled = isLoading;
         elements.refreshButton.disabled = isLoading;
         elements.monthButton.disabled = isLoading;
         elements.loadingOverlay.hidden = !isLoading;
+      }
+
+      function toggleEditMode() {
+        state.editMode = !state.editMode;
+        if (!state.editMode) {
+          state.selectedCell = null;
+        }
+
+        if (state.currentData) {
+          renderWorksheet(state.currentData);
+          return;
+        }
+
+        updateEditModeUi();
+      }
+
+      function updateEditModeUi() {
+        elements.editModeButton.classList.toggle('is-active', state.editMode);
+        elements.editModeButton.setAttribute('aria-pressed', state.editMode ? 'true' : 'false');
+        elements.editModeButton.textContent = state.editMode ? 'ปิดโหมดแก้ไข' : 'โหมดแก้ไข';
+        elements.editActionBar.hidden = !state.editMode;
+        updateEditActionBar();
+      }
+
+      function updateEditActionBar() {
+        const selectedCell = state.selectedCell;
+        const hasSelection = Boolean(selectedCell);
+
+        elements.selectedCellLabel.textContent = hasSelection
+          ? `เลือก ${selectedCell.a1}`
+          : 'ยังไม่ได้เลือก cell';
+        elements.selectedRawCode.textContent = hasSelection
+          ? `Raw code: ${selectedCell.rawCode || '(ว่าง)'}`
+          : 'Raw code: -';
+        elements.editCancelButton.disabled = !hasSelection;
+      }
+
+      function clearSelectedCell() {
+        state.selectedCell = null;
+        const selectedElement = elements.worksheetTable.querySelector('.editable-cell.is-selected');
+        if (selectedElement) {
+          selectedElement.classList.remove('is-selected');
+        }
+
+        updateEditActionBar();
       }
 
       function openMonthModal() {
@@ -757,6 +911,10 @@
         const skip = new Set();
 
         merges.forEach((merge) => {
+          if (shouldIgnoreMerge(merge)) {
+            return;
+          }
+
           const anchorKey = `${merge.row}:${merge.column}`;
           anchor.set(anchorKey, merge);
 
@@ -771,6 +929,15 @@
         });
 
         return { anchor, skip };
+      }
+
+      function shouldIgnoreMerge(merge) {
+        const mergeEndRow = merge.row + merge.rowSpan - 1;
+        const startsInScheduleGrid =
+          merge.column >= state.scheduleStartColumn &&
+          merge.column <= state.scheduleEndColumn;
+
+        return startsInScheduleGrid && mergeEndRow >= 6;
       }
 
       function getRowClass(row) {
@@ -855,23 +1022,25 @@
           classes.push('cell-note');
         }
 
+        if (state.editMode && isEditableCell(cell, rowClass)) {
+          classes.push('editable-cell');
+
+          if (isSelectedCell(cell)) {
+            classes.push('is-selected');
+          }
+        }
+
         return classes.join(' ');
       }
 
       function applyCellStyle(td, cell, rowClass) {
         const isShift = isShiftValueCell(cell, rowClass);
-        const isHeaderLike =
-          rowClass === 'source-title-row' ||
-          rowClass === 'metadata-row' ||
-          rowClass === 'calendar-row' ||
-          rowClass === 'weekday-row' ||
-          rowClass === 'section-row';
+        const background = normalizeSheetBackground(cell.background);
+        const textColor = resolveCellTextColor(cell, background);
 
-        if (!isShift && !isHeaderLike) {
-          const background = normalizeQuietBackground(cell.background);
-          td.style.backgroundColor = background;
-          td.style.setProperty('--cell-text', readableTextColor(background));
-        }
+        td.style.setProperty('background-color', background, 'important');
+        td.style.setProperty('color', textColor, 'important');
+        td.style.setProperty('--cell-text', textColor);
 
         td.style.fontWeight = isShift ? '700' : cell.fontWeight || 'normal';
         td.style.textAlign = isScheduleColumn(cell) ? 'center' : cell.horizontalAlignment || '';
@@ -885,11 +1054,13 @@
         }
 
         const badge = document.createElement('span');
-        const badgeBackground = normalizeBadgeBackground(cell.background);
+        const badgeBackground = normalizeSheetBackground(cell.background);
         badge.className = 'shift-badge';
         badge.textContent = cell.value;
         badge.style.backgroundColor = badgeBackground;
-        badge.style.setProperty('--badge-text', readableTextColor(badgeBackground));
+        const badgeTextColor = resolveCellTextColor(cell, badgeBackground);
+        badge.style.setProperty('color', badgeTextColor, 'important');
+        badge.style.setProperty('--badge-text', badgeTextColor);
         td.appendChild(badge);
       }
 
@@ -911,6 +1082,40 @@
         });
       }
 
+      function bindEditableCell(td, cell, rowClass) {
+        if (!state.editMode || !isEditableCell(cell, rowClass)) {
+          return;
+        }
+
+        td.setAttribute('role', 'button');
+        td.setAttribute('tabindex', '0');
+        td.setAttribute('aria-label', `เลือก ${cell.a1}`);
+        td.addEventListener('click', () => selectEditableCell(td, cell));
+        td.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectEditableCell(td, cell);
+          }
+        });
+      }
+
+      function selectEditableCell(td, cell) {
+        const selectedElement = elements.worksheetTable.querySelector('.editable-cell.is-selected');
+        if (selectedElement && selectedElement !== td) {
+          selectedElement.classList.remove('is-selected');
+        }
+
+        td.classList.add('is-selected');
+        state.selectedCell = {
+          a1: cell.a1,
+          column: cell.column,
+          rawCode: cell.value || '',
+          row: cell.row,
+          sheetName: state.currentSheetName,
+        };
+        updateEditActionBar();
+      }
+
       function getMonthSubtitle(data) {
         const monthCell = data.rows && data.rows[2] && data.rows[2].cells[7];
         const month = monthCell && monthCell.value ? monthCell.value.replace('เดือน', '').trim() : data.sheetName;
@@ -919,25 +1124,26 @@
 
       function updateScheduleColumnBounds(data) {
         const calendarRow = (data.rows || []).find((row) => row.rowNumber === 4);
-        let lastDayColumn = 37;
-        let noteStartColumn = 39;
+        let lastDayColumn = state.reservedDayEndColumn;
 
         if (calendarRow) {
           calendarRow.cells.forEach((cell) => {
             const dayNumber = Number(cell.value);
-            if (cell.column >= 8 && cell.column <= 38 && Number.isInteger(dayNumber) && dayNumber >= 1 && dayNumber <= 31) {
+            if (
+              cell.column >= state.scheduleStartColumn &&
+              cell.column <= state.reservedDayEndColumn &&
+              Number.isInteger(dayNumber) &&
+              dayNumber >= 1 &&
+              dayNumber <= 31
+            ) {
               lastDayColumn = Math.max(lastDayColumn, cell.column);
-            }
-
-            if (String(cell.value || '').indexOf('นักขัตฤกษ์') !== -1) {
-              noteStartColumn = cell.column;
             }
           });
         }
 
         state.scheduleStartColumn = 8;
-        state.scheduleEndColumn = lastDayColumn;
-        state.noteStartColumn = Math.max(noteStartColumn, lastDayColumn + 1);
+        state.scheduleEndColumn = Math.max(lastDayColumn, state.reservedDayEndColumn);
+        state.noteStartColumn = Math.max(state.defaultNoteStartColumn, state.scheduleEndColumn + 1);
       }
 
       function getCellValue(row, column) {
@@ -960,6 +1166,14 @@
 
       function isScheduleColumn(cell) {
         return cell.column >= state.scheduleStartColumn && cell.column <= state.scheduleEndColumn;
+      }
+
+      function isEditableCell(cell, rowClass) {
+        return rowClass === 'data-row' && isScheduleColumn(cell);
+      }
+
+      function isSelectedCell(cell) {
+        return Boolean(state.selectedCell && state.selectedCell.a1 === cell.a1);
       }
 
       function isSpacerColumn(cell) {
@@ -994,20 +1208,17 @@
         return span.colSpan;
       }
 
-      function normalizeQuietBackground(background) {
-        if (!background || isNearWhite(background)) {
-          return '#ffffff';
-        }
-
-        return mixWithWhite(background, 0.22);
+      function normalizeSheetBackground(background) {
+        return parseHexColor(background) ? background : '#ffffff';
       }
 
-      function normalizeBadgeBackground(background) {
-        if (!background || isNearWhite(background)) {
-          return '#e8edf0';
+      function resolveCellTextColor(cell, background) {
+        const fontColor = normalizeSheetFontColor(cell.fontColor);
+        if (fontColor && hasReadableContrast(fontColor, background)) {
+          return fontColor;
         }
 
-        return background;
+        return readableTextColor(background);
       }
 
       function readableTextColor(background) {
@@ -1020,13 +1231,22 @@
         return luminance > 0.54 ? '#17202a' : '#ffffff';
       }
 
-      function isNearWhite(hex) {
-        const rgb = parseHexColor(hex);
-        if (!rgb) {
-          return true;
+      function normalizeSheetFontColor(fontColor) {
+        return parseHexColor(fontColor) ? fontColor : '';
+      }
+
+      function hasReadableContrast(foreground, background) {
+        const foregroundRgb = parseHexColor(foreground);
+        const backgroundRgb = parseHexColor(background);
+        if (!foregroundRgb || !backgroundRgb) {
+          return false;
         }
 
-        return rgb.r > 246 && rgb.g > 246 && rgb.b > 246;
+        const foregroundLuminance = relativeLuminance(foregroundRgb);
+        const backgroundLuminance = relativeLuminance(backgroundRgb);
+        const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+        const darker = Math.min(foregroundLuminance, backgroundLuminance);
+        return (lighter + 0.05) / (darker + 0.05) >= 3;
       }
 
       function parseHexColor(hex) {
@@ -1039,20 +1259,6 @@
           g: parseInt(hex.slice(3, 5), 16),
           b: parseInt(hex.slice(5, 7), 16),
         };
-      }
-
-      function mixWithWhite(hex, amount) {
-        const rgb = parseHexColor(hex);
-        if (!rgb) {
-          return '#ffffff';
-        }
-
-        const mix = (value) => Math.round(value + (255 - value) * amount);
-        return toHexColor(mix(rgb.r), mix(rgb.g), mix(rgb.b));
-      }
-
-      function toHexColor(r, g, b) {
-        return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('')}`;
       }
 
       function relativeLuminance(rgb) {

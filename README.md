@@ -65,13 +65,34 @@ Data details:
 - The web app intentionally renders the raw worksheet matrix instead of only
   normalized employee rows so it stays visually close to the original sheet.
 
-Current next task:
+Current implementation status:
 
-- Improve web text readability. Some cells inherit the original sheet font
-  colors and can become hard to read in the web app. A practical next step is to
-  add a contrast helper in `Index.html` that chooses black or white text based
-  on each cell background, while preserving explicit important colors only when
-  they remain readable.
+- The web app has an Edit Mode toggle. Editable schedule cells can be selected,
+  changed locally, cleared locally, reviewed, and then saved back to the
+  monthly roster worksheet.
+- Pending edits are stored on the client until the user confirms them. The
+  payload sent to Apps Script includes sheet name, row, column, previous raw
+  code, next raw code, action type, employee/date labels, and optional shift
+  metadata.
+- Confirmed edits write raw codes back to the source Google Sheet through
+  `saveScheduleChanges()`. Successful changes are appended to
+  `Schedule Audit Log`; audit failure is reported per item but does not block a
+  successful sheet write.
+- Shift metadata can come from `Shift Dictionary` / `รหัสเวร`, with fallback
+  items in Apps Script. The UI catalog uses this metadata for labels,
+  descriptions, and colors.
+- Monthly regular Off days are computed per employee and per selected month as
+  `Off1` through `Off6`. Users choose "Set Off"; the system assigns the number.
+- Annual Leave is computed per employee and per calendar year as `AL1` through
+  `AL6`. Users choose the catalog option; the system assigns the number.
+- Public Holiday leave is computed per employee and per calendar year as
+  `Off1` through `Off13`, using the holiday color/metadata so it stays distinct
+  from regular monthly Off. Users choose the catalog option
+  `ตั้งนักขัตฤกษ์`; the system assigns the number.
+- The lightweight pseudo-relational layer currently includes normalized
+  employees, schedule entries, shift dictionary rows, optional draft changes,
+  and audit log repository helpers. The current monthly roster worksheets remain
+  the operational source of truth.
 
 ## Setup
 

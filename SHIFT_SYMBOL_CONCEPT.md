@@ -233,6 +233,29 @@ Raw code: 4H-1
 | `3H-4` | `senior_pharmacist` | `3H-4` | `composite` | `branch_ot` | `004` | `17:00` | `20:00` | `O-1` | สำนักงาน + สาขา 004 |
 | `11H-3` | `senior_pharmacist` | `11H-3` | `single` | `branch` | `003` |  |  |  | ทำงานที่สาขา 003 รวม 11 ชั่วโมง |
 
+## Current Implementation Status
+
+ตอนนี้ repo เริ่มมี foundation สำหรับ edit mode และ pseudo-relational layer แล้ว โดยยังคงให้ worksheet รายเดือนเป็น source หลักเหมือนเดิม
+
+สิ่งที่ทำแล้ว:
+
+- อ่านข้อมูลจาก Google Sheet พร้อม values, สีพื้น, สีตัวอักษร, merge metadata และ shift metadata
+- มี `Shift Dictionary` / `รหัสเวร` เป็น optional worksheet และมี fallback dictionary ใน Apps Script
+- มี normalized object layer สำหรับ employees, schedule entries, shift dictionary items, draft changes และ audit log
+- มี Edit Mode ใน web app: เลือก cell, แก้ raw code แบบ local, ล้าง cell, review pending changes และ save กลับ Google Sheet
+- save flow เขียน raw code กลับ cell เดิม และ append audit row ไปที่ `Schedule Audit Log`
+- sidebar catalog ใช้ metadata จาก Shift Dictionary เพื่อแสดง label, รายละเอียด และสีของสัญลักษณ์
+- regular monthly Off ไม่ให้ผู้ใช้เลือก `Off1`, `Off2` เอง แต่ให้กด `ตั้งเป็น Off` แล้วระบบเรียงเลข `Off1`-`Off6` ต่อพนักงานต่อเดือน
+- Annual Leave ไม่ให้ผู้ใช้กำหนด `AL1`-`AL6` เอง แต่ให้เลือก `ตั้งลาพักร้อน` จาก catalog แล้วระบบเรียงเลขทั้งปี
+- Public Holiday / นักขัตฤกษ์ ใช้ catalog option `ตั้งนักขัตฤกษ์` แล้วระบบเรียงเลข `Off1`-`Off13` ต่อพนักงานต่อปี พร้อม metadata/color แยกจาก regular Off
+
+ข้อสำคัญของ Public Holiday:
+
+- raw code ที่บันทึกลงชีทยังเป็น `Off1`-`Off13` ตามรูปแบบชีทเดิม
+- web app แยก Public Holiday ออกจาก regular Off ด้วย metadata และสีของ cell ไม่ใช่ดูจาก raw code อย่างเดียว
+- การลบ Public Holiday ใช้ปุ่ม `ล้างช่องนี้` เดิม แล้วระบบ recompute ลำดับที่เหลือทั้งปี
+- ยังไม่มีการ add/remove employee row หรือ add/remove date column จาก web app
+
 ## CRUD Direction
 
 อนาคต web app ควรแก้ข้อมูลแบบ structured ไม่ใช่ให้ผู้ใช้พิมพ์ raw code อย่างเดียว

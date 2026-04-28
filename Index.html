@@ -18,6 +18,7 @@
         --accent-ink: #ffffff;
         --danger: #b3261e;
         --shadow: 0 16px 44px rgba(35, 55, 48, 0.12);
+        --catalog-drawer-width: 430px;
       }
 
       * {
@@ -243,10 +244,80 @@
         z-index: 30;
       }
 
+      .is-edit-mode .editable-cell.is-empty:hover::after {
+        content: "เพิ่ม";
+      }
+
       .is-edit-mode .editable-cell.is-selected {
         box-shadow:
           inset 0 0 0 999px rgba(11, 127, 86, 0.12),
           inset 0 0 0 3px rgba(11, 127, 86, 0.62);
+      }
+
+      .is-edit-mode .editable-cell.is-range-selected {
+        box-shadow:
+          inset 0 0 0 999px rgba(37, 99, 173, 0.12),
+          inset 0 0 0 2px rgba(37, 99, 173, 0.46);
+      }
+
+      .is-edit-mode .editable-cell.is-range-selected.is-selected {
+        box-shadow:
+          inset 0 0 0 999px rgba(11, 127, 86, 0.16),
+          inset 0 0 0 3px rgba(11, 127, 86, 0.72);
+      }
+
+      .pending-cell {
+        box-shadow: inset 0 0 0 2px rgba(203, 125, 0, 0.72);
+        position: relative;
+      }
+
+      .pending-cell::before {
+        background: #fff4d6;
+        border: 1px solid #efc86d;
+        border-radius: 4px;
+        color: #6e4300;
+        content: "รอ";
+        font-size: 10px;
+        font-weight: 800;
+        left: 4px;
+        line-height: 1;
+        padding: 2px 4px;
+        position: absolute;
+        top: 4px;
+        z-index: 30;
+      }
+
+      .pending-create {
+        box-shadow: inset 0 0 0 2px rgba(31, 122, 72, 0.78);
+      }
+
+      .pending-create::before {
+        background: #e5f5ec;
+        border-color: #a6d8bb;
+        color: #16633b;
+        content: "เพิ่ม";
+      }
+
+      .pending-update {
+        box-shadow: inset 0 0 0 2px rgba(37, 99, 173, 0.78);
+      }
+
+      .pending-update::before {
+        background: #eaf2ff;
+        border-color: #b7cdf5;
+        color: #194f91;
+        content: "แก้";
+      }
+
+      .pending-delete {
+        box-shadow: inset 0 0 0 2px rgba(174, 51, 67, 0.82);
+      }
+
+      .pending-delete::before {
+        background: #fdecef;
+        border-color: #efb7c0;
+        color: #9d2636;
+        content: "ลบ";
       }
 
       .cell-hidden-margin {
@@ -430,6 +501,30 @@
         min-width: 0;
       }
 
+      .edit-action-fields {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .edit-action-fields label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .edit-action-fields input {
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        min-height: 34px;
+        min-width: 150px;
+        padding: 5px 8px;
+      }
+
       .edit-action-summary strong {
         font-weight: 800;
       }
@@ -438,11 +533,404 @@
         color: var(--muted);
       }
 
+      .edit-action-summary .shift-meaning {
+        color: var(--ink);
+        font-weight: 700;
+      }
+
+      .edit-action-summary .shift-hint {
+        background: #edf6f2;
+        border: 1px solid #cce4d9;
+        border-radius: 6px;
+        color: #176448;
+        padding: 2px 6px;
+      }
+
+      .edit-warning {
+        background: #fff4d6;
+        border: 1px solid #efc86d;
+        border-radius: 6px;
+        color: #7a4b00 !important;
+        font-weight: 700;
+        padding: 3px 7px;
+      }
+
+      .edit-warning[hidden] {
+        display: none;
+      }
+
       .edit-action-buttons {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         justify-content: flex-end;
+      }
+
+      .symbol-catalog-drawer {
+        background: var(--panel);
+        border-left: 1px solid var(--line-strong);
+        bottom: 0;
+        box-shadow: -18px 0 44px rgba(35, 55, 48, 0.16);
+        display: flex;
+        flex-direction: column;
+        max-width: 100vw;
+        overflow-x: hidden;
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: min(var(--catalog-drawer-width), 100vw);
+        z-index: 75;
+      }
+
+      .symbol-catalog-drawer * {
+        min-width: 0;
+      }
+
+      .symbol-catalog-drawer[hidden] {
+        display: none;
+      }
+
+      .symbol-catalog-header {
+        border-bottom: 1px solid var(--line);
+        flex: 0 0 auto;
+        padding: 16px 16px 12px;
+      }
+
+      .symbol-catalog-title {
+        align-items: flex-start;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+      }
+
+      .symbol-catalog-title h2 {
+        font-size: 18px;
+        line-height: 1.3;
+        margin: 0;
+      }
+
+      .symbol-catalog-title p {
+        color: var(--muted);
+        line-height: 1.45;
+        margin: 4px 0 0;
+      }
+
+      .symbol-catalog-context {
+        background: #f7faf9;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: grid;
+        gap: 4px;
+        margin-top: 12px;
+        padding: 10px;
+      }
+
+      .symbol-catalog-context strong {
+        font-size: 13px;
+      }
+
+      .symbol-catalog-context span {
+        color: var(--muted);
+        font-size: 12px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .symbol-catalog-list {
+        display: grid;
+        gap: 8px;
+        min-height: 0;
+        overflow: auto;
+        overflow-x: hidden;
+        padding: 12px 14px;
+      }
+
+      .symbol-option {
+        align-items: stretch;
+        background: #ffffff;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        color: var(--ink);
+        display: grid;
+        gap: 9px;
+        grid-template-columns: 82px minmax(0, 1fr);
+        justify-content: stretch;
+        min-height: 66px;
+        overflow: hidden;
+        padding: 8px;
+        text-align: left;
+        white-space: normal;
+        width: 100%;
+      }
+
+      .symbol-option:hover,
+      .symbol-option:focus {
+        border-color: #71b899;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+      }
+
+      .symbol-option.is-current {
+        background: #edf6f2;
+        border-color: #5aac89;
+      }
+
+      .symbol-code-badge {
+        align-items: center;
+        align-self: stretch;
+        background: var(--symbol-bg, #e7f2ed);
+        border-radius: 8px;
+        color: var(--symbol-ink, #164f3b);
+        display: flex;
+        font-size: 15px;
+        font-weight: 800;
+        justify-content: center;
+        line-height: 1.1;
+        min-height: 50px;
+        padding: 6px;
+        width: 100%;
+      }
+
+      .symbol-code-badge.is-composite {
+        background: linear-gradient(145deg, #f1e84d 0 49%, #06215b 50% 100%);
+        color: #0f172a;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .symbol-code-badge.is-composite .symbol-code-base,
+      .symbol-code-badge.is-composite .symbol-code-addon {
+        font-weight: 900;
+        line-height: 1;
+        position: absolute;
+      }
+
+      .symbol-code-badge.is-composite .symbol-code-base {
+        color: #0b0d10;
+        font-size: 18px;
+        left: 12px;
+        top: 5px;
+      }
+
+      .symbol-code-badge.is-composite .symbol-code-addon {
+        bottom: 5px;
+        color: #ffffff;
+        font-size: 17px;
+        right: 6px;
+      }
+
+      .symbol-option-text {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .symbol-option-text strong {
+        font-size: 13px;
+        line-height: 1.25;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+      }
+
+      .symbol-option-text span {
+        color: var(--muted);
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.35;
+        max-width: 100%;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .symbol-option-text .symbol-option-meta {
+        color: #385263;
+      }
+
+      .symbol-option-text .symbol-option-description {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
+
+      .symbol-catalog-empty {
+        color: var(--muted);
+        padding: 16px;
+      }
+
+      .symbol-catalog-empty[hidden] {
+        display: none;
+      }
+
+      .symbol-catalog-actions {
+        border-top: 1px solid var(--line);
+        display: flex;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        padding: 12px 14px;
+      }
+
+      @media (min-width: 721px) {
+        body.symbol-catalog-open {
+          min-width: calc(1120px + var(--catalog-drawer-width));
+        }
+
+        body.symbol-catalog-open .app-shell {
+          margin-left: 0;
+          margin-right: var(--catalog-drawer-width);
+          max-width: none;
+          min-width: 0;
+          width: max(1120px, calc(100vw - var(--catalog-drawer-width)));
+        }
+
+        body.symbol-catalog-open .app-header,
+        body.symbol-catalog-open .roster-card {
+          min-width: max(1040px, calc(100vw - var(--catalog-drawer-width) - 48px));
+          width: max(1040px, calc(100vw - var(--catalog-drawer-width) - 48px));
+        }
+
+        body.symbol-catalog-open .table-wrap {
+          width: 100%;
+        }
+      }
+
+      .attendance-poc {
+        background: var(--panel);
+        border: 1px solid rgba(212, 220, 227, 0.9);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        margin-top: 16px;
+        min-width: calc(100vw - 48px);
+        padding: 14px;
+        width: var(--roster-width, calc(100vw - 48px));
+      }
+
+      .attendance-poc-header {
+        align-items: flex-start;
+        display: flex;
+        gap: 14px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .attendance-poc-header h2 {
+        font-size: 20px;
+        line-height: 1.3;
+        margin: 0;
+      }
+
+      .attendance-poc-header p {
+        color: var(--muted);
+        line-height: 1.45;
+        margin: 4px 0 0;
+      }
+
+      .attendance-poc-controls {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .attendance-poc input[type="file"] {
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        color: var(--ink);
+        font: inherit;
+        min-height: 36px;
+        padding: 6px 8px;
+      }
+
+      .attendance-poc-status,
+      .attendance-poc-summary {
+        color: var(--muted);
+        line-height: 1.45;
+        margin-top: 8px;
+      }
+
+      .attendance-poc-status.error {
+        color: var(--danger);
+      }
+
+      .attendance-poc-summary strong {
+        color: var(--ink);
+      }
+
+      .attendance-poc-table-wrap {
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        margin-top: 12px;
+        max-height: 360px;
+        overflow: auto;
+      }
+
+      .attendance-table {
+        min-width: 1180px;
+        table-layout: auto;
+      }
+
+      .attendance-table th,
+      .attendance-table td {
+        background: #ffffff;
+        font-size: 12px;
+        max-width: none;
+        min-width: 92px;
+        white-space: nowrap;
+      }
+
+      .attendance-table th {
+        background: var(--header);
+        border-bottom: 1px solid var(--line-strong);
+        border-right: 1px solid var(--line);
+        color: #334155;
+        font-weight: 800;
+        height: 34px;
+        padding: 6px 8px;
+        position: sticky;
+        text-align: left;
+        top: 0;
+        z-index: 2;
+      }
+
+      .attendance-table .flag-list {
+        color: #9d2636;
+        font-weight: 800;
+        white-space: normal;
+      }
+
+      .review-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+        max-height: 320px;
+        overflow: auto;
+      }
+
+      .review-item {
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: #ffffff;
+        padding: 10px;
+      }
+
+      .review-item strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .review-item span {
+        color: var(--muted);
+        display: block;
+        font-size: 12px;
+        margin-top: 3px;
       }
 
       .loading-overlay {
@@ -601,8 +1089,43 @@
           min-height: 360px;
         }
 
+        .attendance-poc {
+          min-width: 100%;
+          width: 100%;
+        }
+
+        .attendance-poc-header {
+          flex-direction: column;
+        }
+
+        .attendance-poc-controls {
+          justify-content: flex-start;
+          width: 100%;
+        }
+
+        .attendance-poc input[type="file"] {
+          width: 100%;
+        }
+
         .month-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .symbol-catalog-drawer {
+          border-left: 0;
+          border-top: 1px solid var(--line-strong);
+          bottom: 0;
+          max-height: 72vh;
+          top: auto;
+          width: 100%;
+        }
+
+        body.symbol-catalog-open {
+          padding-bottom: 72vh;
+        }
+
+        .symbol-option {
+          grid-template-columns: 88px minmax(0, 1fr);
         }
       }
     </style>
@@ -640,16 +1163,75 @@
           <div class="edit-action-summary">
             <strong>กำลังแก้ไข</strong>
             <span id="selectedCellLabel">ยังไม่ได้เลือก cell</span>
+            <span id="selectedEmployeeLabel">พนักงาน: -</span>
+            <span id="selectedDateLabel">วันที่: -</span>
             <span id="selectedRawCode">Raw code: -</span>
+            <span class="shift-meaning" id="selectedDisplayLabel" hidden>ความหมาย: -</span>
+            <span id="selectedRoleGroup" hidden>กลุ่มงาน: -</span>
+            <span id="selectedShiftDescription" hidden>รายละเอียด: -</span>
+            <span class="shift-hint" id="selectedShiftHints" hidden>-</span>
+            <span id="selectedPendingStatus"></span>
+            <span class="edit-warning" id="editWarning" hidden></span>
+            <div class="edit-action-fields">
+              <label for="editRawCodeInput">Raw code</label>
+              <input id="editRawCodeInput" type="text" autocomplete="off" placeholder="ใส่รหัสเวร" disabled>
+            </div>
           </div>
           <div class="edit-action-buttons" aria-label="คำสั่งแก้ไข">
-            <button id="editChangeButton" type="button" disabled>เปลี่ยน</button>
-            <button id="editClearButton" type="button" disabled>ล้าง</button>
+            <button id="editChangeButton" type="button" disabled>ใช้ค่านี้</button>
+            <button id="editSetOffButton" type="button" disabled>ตั้งเป็น Off</button>
+            <button id="editClearOffButton" type="button" disabled>ล้าง Off</button>
+            <button id="editClearButton" type="button" disabled>ลบค่า</button>
             <button id="editCancelButton" type="button" disabled>ยกเลิก</button>
-            <button class="primary" id="editConfirmButton" type="button" disabled>ยืนยัน</button>
+            <button id="editRevertButton" type="button" disabled>ย้อนกลับ cell นี้</button>
+            <button class="primary" id="editConfirmButton" type="button" disabled>ยืนยันการเปลี่ยนแปลง</button>
           </div>
         </div>
       </section>
+
+      <section class="attendance-poc" aria-label="ตรวจเทียบเวลาเข้าออก POC">
+        <div class="attendance-poc-header">
+          <div>
+            <h2>ตรวจเทียบเวลา POC</h2>
+            <p>รอบทดสอบเฉพาะ ณัฐธนนท์ มานะกุล เดือนเมษายน 2569</p>
+          </div>
+          <div class="attendance-poc-controls">
+            <input id="pilotCsvInput" type="file" accept=".csv,text/csv">
+            <button class="primary" id="pilotRunButton" type="button" disabled>รันเทียบเวลา</button>
+          </div>
+        </div>
+        <div class="attendance-poc-status" id="pilotStatus">เลือกไฟล์ CSV บันทึกเวลาเพื่อเริ่มทดสอบ</div>
+        <div class="attendance-poc-summary" id="pilotSummary" hidden></div>
+        <div class="attendance-poc-table-wrap" hidden id="pilotTableWrap">
+          <table class="attendance-table" id="pilotComparisonTable"></table>
+        </div>
+      </section>
+
+      <aside class="symbol-catalog-drawer" id="symbolCatalogDrawer" aria-label="แคตตาล็อกรหัสเวร" hidden>
+        <div class="symbol-catalog-header">
+          <div class="symbol-catalog-title">
+            <div>
+              <h2>แคตตาล็อกรหัสเวร</h2>
+              <p>เลือกสัญลักษณ์เพื่อใส่ลง cell ที่กำลังแก้ไข</p>
+            </div>
+            <button id="symbolCatalogClose" type="button">ปิด</button>
+          </div>
+          <div class="symbol-catalog-context">
+            <strong id="symbolCatalogCell">ยังไม่ได้เลือก cell</strong>
+            <span id="symbolCatalogEmployee">พนักงาน: -</span>
+            <span id="symbolCatalogDate">วันที่: -</span>
+            <span id="symbolCatalogCurrent">ค่าปัจจุบัน: -</span>
+            <span id="symbolCatalogRole">กลุ่มงาน: -</span>
+          </div>
+        </div>
+        <div class="symbol-catalog-list" id="symbolCatalogList"></div>
+        <div class="symbol-catalog-empty" id="symbolCatalogEmpty" hidden>ยังไม่มีรายการรหัสเวรสำหรับ cell นี้</div>
+        <div class="symbol-catalog-actions">
+          <button id="symbolCatalogSetOff" type="button">ตั้งเป็น Off</button>
+          <button id="symbolCatalogClear" type="button">ล้างช่องนี้</button>
+          <button id="symbolCatalogRevert" type="button">ย้อนกลับ cell นี้</button>
+        </div>
+      </aside>
     </div>
 
     <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
@@ -671,14 +1253,42 @@
       </section>
     </div>
 
+    <div class="modal-overlay" id="changeReviewModal" hidden>
+      <section class="month-modal" role="dialog" aria-modal="true" aria-labelledby="changeReviewTitle">
+        <div class="month-modal-header">
+          <div>
+            <h2 id="changeReviewTitle">ตรวจสอบการเปลี่ยนแปลง</h2>
+            <p id="changeReviewSummary">ยังไม่มีรายการเปลี่ยนแปลง</p>
+          </div>
+          <button id="changeReviewClose" type="button" aria-label="ปิด">ปิด</button>
+        </div>
+        <div class="review-list" id="changeReviewList"></div>
+        <div class="edit-action-buttons">
+          <button id="changeReviewCancel" type="button">กลับไปแก้ไข</button>
+          <button class="primary" id="changeReviewSubmit" type="button">บันทึกลงชีต</button>
+        </div>
+      </section>
+    </div>
+
     <script>
       const elements = {
+        changeReviewCancel: document.getElementById('changeReviewCancel'),
+        changeReviewClose: document.getElementById('changeReviewClose'),
+        changeReviewList: document.getElementById('changeReviewList'),
+        changeReviewModal: document.getElementById('changeReviewModal'),
+        changeReviewSubmit: document.getElementById('changeReviewSubmit'),
+        changeReviewSummary: document.getElementById('changeReviewSummary'),
         editActionBar: document.getElementById('editActionBar'),
         editCancelButton: document.getElementById('editCancelButton'),
         editChangeButton: document.getElementById('editChangeButton'),
+        editClearOffButton: document.getElementById('editClearOffButton'),
         editClearButton: document.getElementById('editClearButton'),
         editConfirmButton: document.getElementById('editConfirmButton'),
         editModeButton: document.getElementById('editModeButton'),
+        editRawCodeInput: document.getElementById('editRawCodeInput'),
+        editRevertButton: document.getElementById('editRevertButton'),
+        editSetOffButton: document.getElementById('editSetOffButton'),
+        editWarning: document.getElementById('editWarning'),
         fetchStatus: document.getElementById('fetchStatus'),
         loadingOverlay: document.getElementById('loadingOverlay'),
         monthButton: document.getElementById('monthButton'),
@@ -687,27 +1297,101 @@
         monthModalClose: document.getElementById('monthModalClose'),
         pageSubtitle: document.getElementById('pageSubtitle'),
         pageTitle: document.getElementById('pageTitle'),
+        pilotComparisonTable: document.getElementById('pilotComparisonTable'),
+        pilotCsvInput: document.getElementById('pilotCsvInput'),
+        pilotRunButton: document.getElementById('pilotRunButton'),
+        pilotStatus: document.getElementById('pilotStatus'),
+        pilotSummary: document.getElementById('pilotSummary'),
+        pilotTableWrap: document.getElementById('pilotTableWrap'),
         refreshButton: document.getElementById('refreshButton'),
         selectedCellLabel: document.getElementById('selectedCellLabel'),
+        selectedDateLabel: document.getElementById('selectedDateLabel'),
+        selectedDisplayLabel: document.getElementById('selectedDisplayLabel'),
+        selectedEmployeeLabel: document.getElementById('selectedEmployeeLabel'),
+        selectedPendingStatus: document.getElementById('selectedPendingStatus'),
         selectedRawCode: document.getElementById('selectedRawCode'),
+        selectedRoleGroup: document.getElementById('selectedRoleGroup'),
+        selectedShiftDescription: document.getElementById('selectedShiftDescription'),
+        selectedShiftHints: document.getElementById('selectedShiftHints'),
         sheetStatus: document.getElementById('sheetStatus'),
+        symbolCatalogCell: document.getElementById('symbolCatalogCell'),
+        symbolCatalogClear: document.getElementById('symbolCatalogClear'),
+        symbolCatalogClose: document.getElementById('symbolCatalogClose'),
+        symbolCatalogCurrent: document.getElementById('symbolCatalogCurrent'),
+        symbolCatalogDate: document.getElementById('symbolCatalogDate'),
+        symbolCatalogDrawer: document.getElementById('symbolCatalogDrawer'),
+        symbolCatalogEmployee: document.getElementById('symbolCatalogEmployee'),
+        symbolCatalogEmpty: document.getElementById('symbolCatalogEmpty'),
+        symbolCatalogList: document.getElementById('symbolCatalogList'),
+        symbolCatalogRevert: document.getElementById('symbolCatalogRevert'),
+        symbolCatalogRole: document.getElementById('symbolCatalogRole'),
+        symbolCatalogSetOff: document.getElementById('symbolCatalogSetOff'),
+        tableWrap: document.getElementById('tableWrap'),
         worksheetTable: document.getElementById('worksheetTable'),
       };
       const state = {
         currentData: null,
         currentSheetName: '',
         editMode: false,
+        annualLeaveYearCache: new Map(),
+        defaultHolidayLeaveColumn: 40,
+        publicHolidayYearCache: new Map(),
+        holidayLeaveColumn: 40,
         monthOptions: [],
+        pendingEdits: new Map(),
         selectedCell: null,
+        selectedRange: null,
+        selectionAnchor: null,
+        isDraggingSelection: false,
+        dragAutoScrollFrame: 0,
+        dragAutoScrollX: 0,
+        dragAutoScrollY: 0,
+        dragPointerX: 0,
+        dragPointerY: 0,
         scheduleStartColumn: 8,
         scheduleEndColumn: 38,
         reservedDayEndColumn: 38,
         defaultNoteStartColumn: 39,
+        maxAnnualLeaveCount: 6,
+        maxMonthlyOffCount: 6,
+        maxPublicHolidayCount: 13,
         noteStartColumn: 39,
+        pilotAttendanceRows: [],
+        pilotCsvFileName: '',
       };
 
+      elements.changeReviewCancel.addEventListener('click', closeChangeReviewModal);
+      elements.changeReviewClose.addEventListener('click', closeChangeReviewModal);
+      elements.changeReviewSubmit.addEventListener('click', submitPendingChanges);
+      elements.changeReviewModal.addEventListener('click', (event) => {
+        if (event.target === elements.changeReviewModal) {
+          closeChangeReviewModal();
+        }
+      });
+      window.addEventListener('mousemove', handleSelectionDragMove);
+      window.addEventListener('mouseup', () => {
+        state.isDraggingSelection = false;
+        stopDragAutoScroll();
+      });
       elements.editModeButton.addEventListener('click', toggleEditMode);
+      elements.editChangeButton.addEventListener('click', applyLocalEditFromInput);
+      elements.editClearOffButton.addEventListener('click', clearSelectedCellOff);
+      elements.editClearButton.addEventListener('click', clearSelectedCellRawCode);
       elements.editCancelButton.addEventListener('click', clearSelectedCell);
+      elements.editConfirmButton.addEventListener('click', openChangeReviewModal);
+      elements.editRevertButton.addEventListener('click', revertSelectedPendingEdit);
+      elements.editSetOffButton.addEventListener('click', setSelectedCellOffFromSelection);
+      elements.symbolCatalogClear.addEventListener('click', clearSelectedCellRawCode);
+      elements.symbolCatalogClose.addEventListener('click', clearSelectedCell);
+      elements.symbolCatalogRevert.addEventListener('click', revertSelectedPendingEdit);
+      elements.symbolCatalogSetOff.addEventListener('click', setSelectedCellOffFromSelection);
+      elements.editRawCodeInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          applyLocalEditFromInput();
+        }
+      });
+      elements.pilotCsvInput.addEventListener('change', handlePilotCsvFileSelection);
+      elements.pilotRunButton.addEventListener('click', runPilotAttendanceComparison);
       elements.refreshButton.addEventListener('click', loadWorksheet);
       elements.monthButton.addEventListener('click', openMonthModal);
       elements.monthModalClose.addEventListener('click', closeMonthModal);
@@ -718,8 +1402,13 @@
       });
       window.addEventListener('resize', () => syncRosterWidth(elements.worksheetTable));
       window.addEventListener('keydown', (event) => {
+        if (handleScheduleKeyboardShortcut(event)) {
+          return;
+        }
+
         if (event.key === 'Escape') {
           closeMonthModal();
+          closeChangeReviewModal();
         }
       });
       loadWorksheet();
@@ -727,6 +1416,9 @@
       function loadWorksheet(sheetName) {
         setLoading(true);
         state.selectedCell = null;
+        state.selectionAnchor = null;
+        state.selectedRange = null;
+        clearEditWarning();
         updateEditModeUi();
         elements.sheetStatus.classList.remove('error');
         elements.sheetStatus.textContent = 'กำลังอ่านข้อมูล';
@@ -766,6 +1458,7 @@
               return;
             }
 
+            const displayCell = withDraftComputedSummary(withPendingEdit(cell), rowClass);
             const td = document.createElement('td');
             const span = mergeState.anchor.get(key);
             if (span) {
@@ -773,12 +1466,12 @@
               td.colSpan = getVisibleColSpan(span);
             }
 
-            td.className = getCellClass(cell, columnIndex, rowClass);
-            td.title = `${cell.a1}${cell.value ? `: ${cell.value}` : ''}`;
-            applyCellStyle(td, cell, rowClass);
-            renderCellContent(td, cell, rowClass);
-            bindMonthCell(td, cell, rowClass);
-            bindEditableCell(td, cell, rowClass);
+            td.className = getCellClass(displayCell, columnIndex, rowClass);
+            td.title = `${displayCell.a1}${displayCell.value ? `: ${displayCell.value}` : ''}`;
+            applyCellStyle(td, displayCell, rowClass);
+            renderCellContent(td, displayCell, rowClass);
+            bindMonthCell(td, displayCell, rowClass);
+            bindEditableCell(td, displayCell, rowClass);
             tr.appendChild(td);
           });
 
@@ -792,6 +1485,7 @@
         elements.worksheetTable = table;
         syncRosterWidth(table);
         updateEditModeUi();
+        focusSelectedEditableCell();
         setLoading(false);
       }
 
@@ -809,10 +1503,395 @@
         elements.loadingOverlay.hidden = !isLoading;
       }
 
+      function handlePilotCsvFileSelection(event) {
+        const file = event.target.files && event.target.files[0];
+        state.pilotAttendanceRows = [];
+        state.pilotCsvFileName = '';
+        elements.pilotRunButton.disabled = true;
+        elements.pilotSummary.hidden = true;
+        elements.pilotTableWrap.hidden = true;
+        elements.pilotComparisonTable.replaceChildren();
+
+        if (!file) {
+          setPilotStatus('เลือกไฟล์ CSV บันทึกเวลาเพื่อเริ่มทดสอบ', false);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const rows = parseAttendanceCsvClientSide(String(reader.result || ''));
+            const normalized = normalizePilotAttendanceRecords(rows);
+            state.pilotAttendanceRows = rows;
+            state.pilotCsvFileName = file.name;
+            elements.pilotRunButton.disabled = normalized.records.length === 0;
+            setPilotStatus(
+              `อ่าน ${file.name}: พบข้อมูลแตะนิ้วของณัฐธนนท์ ${normalized.totalPunches} แถว ` +
+                `ครอบคลุม ${normalized.records.length} วัน`,
+              normalized.records.length === 0,
+            );
+          } catch (error) {
+            setPilotStatus(error && error.message ? error.message : String(error), true);
+          }
+        };
+        reader.onerror = () => setPilotStatus('อ่านไฟล์ CSV ไม่สำเร็จ', true);
+        reader.readAsText(file, 'utf-8');
+      }
+
+      function parseAttendanceCsvClientSide(csvText) {
+        const parsedRows = parseCsvRows(csvText).filter((row) =>
+          row.some((cell) => String(cell || '').trim()),
+        );
+        if (parsedRows.length < 2) {
+          throw new Error('CSV ไม่มีข้อมูลเพียงพอสำหรับเปรียบเทียบ');
+        }
+
+        const headers = parsedRows[0].map((header) => String(header || '').replace(/^\uFEFF/, '').trim());
+        return parsedRows.slice(1).map((row) => {
+          const record = {};
+          headers.forEach((header, index) => {
+            record[header] = String(row[index] || '').trim();
+          });
+          return record;
+        });
+      }
+
+      function parseCsvRows(text) {
+        const rows = [];
+        let row = [];
+        let field = '';
+        let inQuotes = false;
+
+        for (let index = 0; index < text.length; index += 1) {
+          const char = text[index];
+          const next = text[index + 1];
+
+          if (char === '"') {
+            if (inQuotes && next === '"') {
+              field += '"';
+              index += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+            continue;
+          }
+
+          if (char === ',' && !inQuotes) {
+            row.push(field);
+            field = '';
+            continue;
+          }
+
+          if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && next === '\n') {
+              index += 1;
+            }
+            row.push(field);
+            rows.push(row);
+            row = [];
+            field = '';
+            continue;
+          }
+
+          field += char;
+        }
+
+        row.push(field);
+        rows.push(row);
+        return rows;
+      }
+
+      function normalizePilotAttendanceRecords(records) {
+        const pilotRows = records.filter((record) => {
+          const employeeNumber = getCsvField(record, 'หมายเลขพนักงาน');
+          const firstName = getCsvField(record, 'ชื่อ');
+          return employeeNumber === '26001' || firstName === 'ณัฐธนนท์';
+        });
+        const groupedByDate = new Map();
+
+        pilotRows.forEach((record) => {
+          const date = getCsvField(record, 'วันที่');
+          const time = getCsvField(record, 'เวลา');
+          if (!date || !time) {
+            return;
+          }
+
+          if (!groupedByDate.has(date)) {
+            groupedByDate.set(date, []);
+          }
+          groupedByDate.get(date).push({
+            employeeNumber: getCsvField(record, 'หมายเลขพนักงาน'),
+            firstName: getCsvField(record, 'ชื่อ'),
+            department: getCsvField(record, 'แผนก'),
+            date,
+            time,
+          });
+        });
+
+        const normalizedRecords = Array.from(groupedByDate.entries())
+          .sort((left, right) => left[0].localeCompare(right[0]))
+          .map(([date, items]) => {
+            const sortedTimes = items.map((item) => item.time).sort();
+            const uniqueTimes = [];
+            sortedTimes.forEach((time) => {
+              if (uniqueTimes.indexOf(time) === -1) {
+                uniqueTimes.push(time);
+              }
+            });
+
+            return {
+              date,
+              employeeNumber: items[0] ? items[0].employeeNumber : '',
+              firstName: items[0] ? items[0].firstName : '',
+              department: items[0] ? items[0].department : '',
+              originalPunchCount: sortedTimes.length,
+              actualPunchCount: uniqueTimes.length,
+              duplicateDeduped: uniqueTimes.length !== sortedTimes.length,
+              times: uniqueTimes,
+            };
+          });
+
+        return {
+          records: normalizedRecords,
+          byDate: new Map(normalizedRecords.map((record) => [record.date, record])),
+          totalPunches: pilotRows.length,
+        };
+      }
+
+      function getCsvField(record, header) {
+        return String((record && record[header]) || '').trim();
+      }
+
+      function runPilotAttendanceComparison() {
+        if (!state.pilotAttendanceRows.length) {
+          setPilotStatus('ต้องเลือกไฟล์ CSV ก่อนรันเทียบเวลา', true);
+          return;
+        }
+
+        setPilotBusy(true);
+        setPilotStatus('กำลังอ่าน master schedule ของณัฐธนนท์จาก Google Sheet', false);
+
+        google.script.run
+          .withSuccessHandler(handlePilotPocData)
+          .withFailureHandler((error) => {
+            setPilotBusy(false);
+            setPilotStatus(error && error.message ? error.message : String(error), true);
+          })
+          .getPilotAttendancePocData('แก้ไข เมษายน 69');
+      }
+
+      function handlePilotPocData(data) {
+        const normalizedAttendance = normalizePilotAttendanceRecords(state.pilotAttendanceRows);
+        setPilotBusy(false);
+
+        if (!data || !data.employeeInspection || !data.employeeInspection.reliable) {
+          const candidates = data && data.employeeInspection && data.employeeInspection.candidates
+            ? data.employeeInspection.candidates.map((item) => `${item.employeeName} row ${item.sourceRow}`).join(', ')
+            : '';
+          setPilotStatus(`ยังหา row ของณัฐธนนท์แบบเชื่อถือไม่ได้${candidates ? `: ${candidates}` : ''}`, true);
+          return;
+        }
+
+        const comparisonRows = comparePilotAttendance(
+          data.expectedSchedule || [],
+          normalizedAttendance,
+          data.pilot || {},
+        );
+        renderPilotComparisonTable(comparisonRows);
+        renderPilotComparisonSummary(comparisonRows, normalizedAttendance, data);
+        setPilotStatus(
+          `เทียบกับ master schedule สำเร็จ: ${data.employeeInspection.selectedEmployee.employeeName} ` +
+            `(row ${data.employeeInspection.selectedEmployee.sourceRow})`,
+          false,
+        );
+      }
+
+      function comparePilotAttendance(expectedSchedule, normalizedAttendance, pilot) {
+        const compareEndDate = pilot.compareEndDate || '2026-04-28';
+        return (expectedSchedule || [])
+          .filter((item) => item.expectedWorkDate && item.expectedWorkDate <= compareEndDate)
+          .map((expected) => {
+            const attendance = normalizedAttendance.byDate.get(expected.expectedWorkDate);
+            const inferred = inferPilotPunches(attendance, expected.expectedWorkDate, compareEndDate);
+            const flags = [];
+
+            if (expected.expectedStatus === 'OFF') {
+              flags.push('OFF_DAY');
+            } else if (expected.expectedStatus === 'UNSUPPORTED') {
+              flags.push('UNSUPPORTED_SHIFT');
+            } else if (expected.expectedStatus === 'BLANK') {
+              flags.push('BLANK_SCHEDULE');
+            } else if (expected.expectedStatus === 'WORK') {
+              if (!attendance) {
+                flags.push(expected.expectedWorkDate === compareEndDate ? 'PARTIAL_EXPORT_DAY' : 'ABSENT');
+              } else {
+                inferred.flags.forEach((flag) => flags.push(flag));
+              }
+            }
+
+            if (attendance && attendance.duplicateDeduped) {
+              flags.push('DUPLICATE_PUNCH_DEDUPED');
+            }
+
+            return {
+              date: expected.expectedWorkDate,
+              employeeName: expected.employeeName,
+              rawCode: expected.rawCode,
+              expectedStatus: expected.expectedStatus,
+              expectedStart: expected.expectedStart,
+              actualStart: inferred.actualStart,
+              breakStart: expected.breakStart,
+              breakOut: inferred.breakOut,
+              breakEnd: expected.breakEnd,
+              breakIn: inferred.breakIn,
+              expectedEnd: expected.expectedEnd,
+              actualEnd: inferred.actualEnd,
+              actualPunchCount: attendance ? attendance.actualPunchCount : 0,
+              flags,
+            };
+          });
+      }
+
+      function inferPilotPunches(attendance, date, compareEndDate) {
+        const result = {
+          actualStart: '',
+          breakOut: '',
+          breakIn: '',
+          actualEnd: '',
+          flags: [],
+        };
+        if (!attendance) {
+          return result;
+        }
+
+        const times = attendance.times || [];
+        if (times.length >= 4) {
+          result.actualStart = times[0];
+          result.breakOut = times[1];
+          result.breakIn = times[2];
+          result.actualEnd = times[times.length - 1];
+          return result;
+        }
+
+        if (times.length === 3) {
+          result.actualStart = times[0];
+          result.breakOut = times[1];
+          result.actualEnd = times[2];
+          result.flags.push('MISSING_BREAK_PUNCH');
+          return result;
+        }
+
+        if (times.length === 2) {
+          result.actualStart = times[0];
+          result.actualEnd = times[1];
+          result.flags.push('MISSING_BREAK_PUNCH');
+          return result;
+        }
+
+        if (times.length === 1) {
+          result.actualStart = times[0];
+          if (date === compareEndDate) {
+            result.flags.push('PARTIAL_EXPORT_DAY');
+          } else {
+            result.flags.push('MISSING_BREAK_PUNCH');
+            result.flags.push('MISSING_CLOCK_OUT');
+          }
+        }
+
+        return result;
+      }
+
+      function renderPilotComparisonTable(rows) {
+        elements.pilotComparisonTable.replaceChildren();
+        elements.pilotTableWrap.hidden = rows.length === 0;
+        if (rows.length === 0) {
+          return;
+        }
+
+        const columns = [
+          ['date', 'วันที่'],
+          ['employeeName', 'พนักงาน'],
+          ['rawCode', 'Raw'],
+          ['expectedStatus', 'สถานะ'],
+          ['expectedStart', 'เข้าแผน'],
+          ['actualStart', 'เข้าจริง'],
+          ['breakStart', 'พักแผน'],
+          ['breakOut', 'ออกพัก'],
+          ['breakEnd', 'กลับแผน'],
+          ['breakIn', 'กลับจริง'],
+          ['expectedEnd', 'ออกแผน'],
+          ['actualEnd', 'ออกจริง'],
+          ['actualPunchCount', 'จำนวนแตะ'],
+          ['flags', 'Flags'],
+        ];
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        columns.forEach(([, label]) => {
+          const th = document.createElement('th');
+          th.textContent = label;
+          headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+
+        const tbody = document.createElement('tbody');
+        rows.forEach((row) => {
+          const tr = document.createElement('tr');
+          columns.forEach(([field]) => {
+            const td = document.createElement('td');
+            if (field === 'flags') {
+              td.className = 'flag-list';
+              td.textContent = (row.flags || []).join(', ');
+            } else {
+              td.textContent = row[field] === undefined || row[field] === null ? '' : String(row[field]);
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        elements.pilotComparisonTable.appendChild(thead);
+        elements.pilotComparisonTable.appendChild(tbody);
+      }
+
+      function renderPilotComparisonSummary(rows, normalizedAttendance, data) {
+        const flaggedCount = rows.filter((row) => row.flags && row.flags.length).length;
+        const workCount = rows.filter((row) => row.expectedStatus === 'WORK').length;
+        const offCount = rows.filter((row) => row.expectedStatus === 'OFF').length;
+        elements.pilotSummary.hidden = false;
+        elements.pilotSummary.replaceChildren(
+          document.createTextNode('สรุป: '),
+          createInlineStrong(String(rows.length)),
+          document.createTextNode(` วันที่ที่นำมาเทียบ, วันทำงาน ${workCount}, วันหยุด ${offCount}, `),
+          createInlineStrong(String(flaggedCount)),
+          document.createTextNode(
+            ` วันที่มี flag, CSV ${normalizedAttendance.totalPunches} punch rows, ` +
+              `อ่าน master ล่าสุด ${data.fetchedAt || '-'}`,
+          ),
+        );
+      }
+
+      function createInlineStrong(text) {
+        const strong = document.createElement('strong');
+        strong.textContent = text;
+        return strong;
+      }
+
+      function setPilotBusy(isBusy) {
+        elements.pilotRunButton.disabled = isBusy || state.pilotAttendanceRows.length === 0;
+        elements.pilotRunButton.textContent = isBusy ? 'กำลังเทียบ...' : 'รันเทียบเวลา';
+      }
+
+      function setPilotStatus(message, isError) {
+        elements.pilotStatus.textContent = message;
+        elements.pilotStatus.classList.toggle('error', Boolean(isError));
+      }
+
       function toggleEditMode() {
         state.editMode = !state.editMode;
         if (!state.editMode) {
           state.selectedCell = null;
+          state.selectionAnchor = null;
+          state.selectedRange = null;
         }
 
         if (state.currentData) {
@@ -834,24 +1913,2233 @@
       function updateEditActionBar() {
         const selectedCell = state.selectedCell;
         const hasSelection = Boolean(selectedCell);
+        const hasPendingChange = Boolean(selectedCell && selectedCell.hasPendingEdit);
+        const selectedIsOff = Boolean(selectedCell && isRegularMonthlyOffCellInfo(selectedCell));
+        const selectedIsValidDay = Boolean(selectedCell && isValidMonthDayColumn(selectedCell.column));
+        const pendingChangeCount = state.pendingEdits.size;
+        const selectedRangeCount = getSelectedRangeCellCount();
 
         elements.selectedCellLabel.textContent = hasSelection
-          ? `เลือก ${selectedCell.a1}`
-          : 'ยังไม่ได้เลือก cell';
+          ? selectedRangeCount > 1
+            ? `เลือก ${selectedRangeCount} cells`
+            : `เลือก ${selectedCell.a1}`
+          : `ยังไม่ได้เลือก cell`;
+        elements.selectedEmployeeLabel.textContent = hasSelection
+          ? `พนักงาน: ${selectedCell.employeeLabel || '-'}`
+          : 'พนักงาน: -';
+        elements.selectedDateLabel.textContent = hasSelection
+          ? `วันที่: ${selectedCell.dateLabel || '-'}`
+          : 'วันที่: -';
         elements.selectedRawCode.textContent = hasSelection
-          ? `Raw code: ${selectedCell.rawCode || '(ว่าง)'}`
+          ? selectedRangeCount > 1
+            ? 'Raw code: หลายช่อง'
+            : `Raw code: ${selectedCell.rawCode || '(ว่าง)'}`
           : 'Raw code: -';
+        renderSelectedShiftDetails(selectedCell);
+        elements.selectedPendingStatus.textContent = hasPendingChange
+          ? `${getPendingActionLabel(selectedCell.pendingActionType)}: ` +
+              `${formatRawCodeForReview(selectedCell.originalRawCode)} -> ${formatRawCodeForReview(selectedCell.rawCode)}`
+          : '';
+        elements.editRawCodeInput.disabled = !hasSelection;
+        elements.editRawCodeInput.value = hasSelection ? selectedCell.rawCode : '';
+        elements.editChangeButton.disabled = !hasSelection;
+        elements.editSetOffButton.disabled = !hasSelection || selectedIsOff || !selectedIsValidDay;
+        elements.editClearOffButton.disabled = !hasSelection || !selectedIsOff;
+        elements.editClearButton.disabled = !hasSelection;
         elements.editCancelButton.disabled = !hasSelection;
+        elements.editRevertButton.disabled = !hasPendingChange;
+        elements.editConfirmButton.disabled = pendingChangeCount === 0;
+        elements.editConfirmButton.textContent =
+          pendingChangeCount > 0 ? `ยืนยันการเปลี่ยนแปลง (${pendingChangeCount})` : 'ยืนยันการเปลี่ยนแปลง';
+        renderSymbolCatalog(selectedCell);
+      }
+
+      function renderSelectedShiftDetails(selectedCell) {
+        if (!selectedCell) {
+          setDetailText(elements.selectedDisplayLabel, '');
+          setDetailText(elements.selectedRoleGroup, '');
+          setDetailText(elements.selectedShiftDescription, '');
+          setDetailText(elements.selectedShiftHints, '');
+          return;
+        }
+
+        const shiftMeta = selectedCell ? selectedCell.shiftMeta : null;
+        const displayLabel = getMeaningDisplayLabel(selectedCell.rawCode, shiftMeta);
+        const hints = buildShiftHints(shiftMeta);
+
+        setDetailText(elements.selectedDisplayLabel, displayLabel ? `ความหมาย: ${displayLabel}` : '');
+        setDetailText(elements.selectedRoleGroup, shiftMeta && shiftMeta.roleGroup ? `กลุ่มงาน: ${shiftMeta.roleGroup}` : '');
+        setDetailText(
+          elements.selectedShiftDescription,
+          shiftMeta && shiftMeta.description ? `รายละเอียด: ${shiftMeta.description}` : '',
+        );
+        setDetailText(elements.selectedShiftHints, hints);
+      }
+
+      function renderSymbolCatalog(selectedCell) {
+        const hasSelection = Boolean(state.editMode && selectedCell);
+        document.body.classList.toggle('symbol-catalog-open', hasSelection);
+        elements.symbolCatalogDrawer.hidden = !hasSelection;
+        elements.symbolCatalogList.replaceChildren();
+        elements.symbolCatalogEmpty.hidden = true;
+
+        if (!hasSelection) {
+          elements.symbolCatalogCell.textContent = 'ยังไม่ได้เลือก cell';
+          elements.symbolCatalogEmployee.textContent = 'พนักงาน: -';
+          elements.symbolCatalogDate.textContent = 'วันที่: -';
+          elements.symbolCatalogCurrent.textContent = 'ค่าปัจจุบัน: -';
+          elements.symbolCatalogRole.textContent = 'กลุ่มงาน: -';
+          elements.symbolCatalogClear.disabled = true;
+          elements.symbolCatalogSetOff.disabled = true;
+          elements.symbolCatalogRevert.disabled = true;
+          return;
+        }
+
+        const selectedRangeCells = getSelectedEditableCellInfos();
+        const selectedRangeHasClearableCell = selectedRangeCells.some((cellInfo) =>
+          Boolean(cellInfo.rawCode || cellInfo.hasPendingEdit),
+        );
+        const selectedIsOff = isRegularMonthlyOffCellInfo(selectedCell);
+        const selectedIsValidDay = isValidMonthDayColumn(selectedCell.column);
+        const selectedRangeCount = getSelectedRangeCellCount();
+        elements.symbolCatalogCell.textContent = `Cell ${selectedCell.a1}`;
+        elements.symbolCatalogEmployee.textContent = `พนักงาน: ${selectedCell.employeeLabel || '-'}`;
+        elements.symbolCatalogDate.textContent = `วันที่: ${selectedCell.dateLabel || '-'}`;
+        elements.symbolCatalogCurrent.textContent = selectedRangeCount > 1
+          ? `เลือกอยู่: ${selectedRangeCount} cells`
+          : `ค่าปัจจุบัน: ${selectedCell.rawCode || '(ว่าง)'}`;
+        elements.symbolCatalogRole.textContent = `กลุ่มงาน: ${selectedCell.roleGroup || '-'}`;
+        elements.symbolCatalogClear.disabled = !selectedRangeHasClearableCell;
+        elements.symbolCatalogSetOff.disabled = selectedIsOff || !selectedIsValidDay;
+        elements.symbolCatalogRevert.disabled = !selectedCell.hasPendingEdit;
+
+        const annualLeaveOption = createComputedAnnualLeaveOption(selectedCell);
+        elements.symbolCatalogList.appendChild(annualLeaveOption);
+
+        const publicHolidayOption = createComputedPublicHolidayOption(selectedCell);
+        elements.symbolCatalogList.appendChild(publicHolidayOption);
+
+        const offOption = createComputedOffOption(selectedCell);
+        elements.symbolCatalogList.appendChild(offOption);
+
+        const catalogItems = getShiftCatalogItems(selectedCell);
+        elements.symbolCatalogEmpty.hidden = true;
+        catalogItems.forEach((item) => {
+          elements.symbolCatalogList.appendChild(createSymbolOption(item, selectedCell));
+        });
+      }
+
+      function getShiftCatalogItems(selectedCell) {
+        const dictionaryItems = ((state.currentData && state.currentData.shiftDictionaryItems) || [])
+          .filter((item) => {
+            return item &&
+              item.rawCode &&
+              !isOffRawCode(item.rawCode) &&
+              !isAnnualLeaveRawCode(item.rawCode) &&
+              !isPublicHolidaySavedRawCode(item.rawCode) &&
+              !isPublicHolidayLikeRawCode(item.rawCode);
+          });
+        const preferredRoleGroup = selectedCell && selectedCell.roleGroup ? selectedCell.roleGroup : '';
+        const rankedItems = dictionaryItems.map((item, index) => ({
+          displayRank: getCatalogDisplayRank(item),
+          index,
+          item,
+          roleRank: getCatalogRoleRank(item, preferredRoleGroup),
+        }));
+        const matchingItems = rankedItems.filter((entry) => entry.roleRank < 4);
+        const candidates = matchingItems.length > 0 ? matchingItems : rankedItems;
+        const byRawCode = new Map();
+
+        candidates
+          .sort((a, b) => {
+            if (a.roleRank !== b.roleRank) {
+              return a.roleRank - b.roleRank;
+            }
+
+            if (a.displayRank !== b.displayRank) {
+              return a.displayRank - b.displayRank;
+            }
+
+            const rawCompare = String(a.item.rawCode).localeCompare(String(b.item.rawCode), 'th', { numeric: true });
+            return rawCompare || a.index - b.index;
+          })
+          .forEach((entry) => {
+            if (!byRawCode.has(entry.item.rawCode)) {
+              byRawCode.set(entry.item.rawCode, entry.item);
+            }
+          });
+
+        return Array.from(byRawCode.values());
+      }
+
+      function createComputedOffOption(selectedCell) {
+        const selectedIsOff = isRegularMonthlyOffCellInfo(selectedCell);
+        const isRangeSelection = getSelectedRangeCellCount() > 1;
+        const shiftMeta = normalizeShiftMeta({
+          rawCode: 'Off',
+          roleGroup: selectedCell.roleGroup || 'any',
+          displayLabel: !isRangeSelection && selectedIsOff ? 'ล้าง Off' : 'ตั้งเป็น Off',
+          displayMode: 'off',
+          segmentType: 'off',
+          description: !isRangeSelection && selectedIsOff
+            ? 'นำวันหยุดออก แล้วระบบจะเรียง Off ที่เหลือใหม่'
+            : 'ระบบจะคำนวณเลข Off1-Off6 ตามลำดับวันที่ในเดือนนี้',
+        }, 'Off', selectedCell.roleGroup);
+        const button = document.createElement('button');
+        button.className = 'symbol-option';
+        button.type = 'button';
+        button.setAttribute('aria-label', !isRangeSelection && selectedIsOff ? 'ล้าง Off' : 'ตั้งเป็น Off');
+        button.disabled = !isValidMonthDayColumn(selectedCell.column);
+        if (!isRangeSelection && selectedIsOff) {
+          button.classList.add('is-current');
+        }
+
+        button.appendChild(createSymbolBadge(shiftMeta));
+
+        const text = document.createElement('span');
+        text.className = 'symbol-option-text';
+
+        const title = document.createElement('strong');
+        title.textContent = !isRangeSelection && selectedIsOff ? 'ล้าง Off' : 'ตั้งเป็น Off';
+
+        const meta = document.createElement('span');
+        meta.className = 'symbol-option-meta';
+        meta.textContent = 'ระบบคำนวณเลข Off อัตโนมัติ';
+
+        const description = document.createElement('span');
+        description.className = 'symbol-option-description';
+        description.textContent = !isRangeSelection && selectedIsOff
+          ? 'ลบ Off วันนี้ แล้วเรียง Off ที่เหลือใหม่'
+          : `เพิ่ม Off วันนี้ได้ไม่เกิน ${state.maxMonthlyOffCount} วันต่อเดือน`;
+
+        text.appendChild(title);
+        text.appendChild(meta);
+        text.appendChild(description);
+        button.appendChild(text);
+        button.addEventListener('click', () => {
+          if (isRangeSelection) {
+            applyBulkLocalEdit('Off');
+            return;
+          }
+
+          if (selectedIsOff) {
+            clearSelectedCellOff();
+            return;
+          }
+
+          setSelectedCellOff();
+        });
+
+        return button;
+      }
+
+      function createComputedAnnualLeaveOption(selectedCell) {
+        const selectedIsAnnualLeave = isAnnualLeaveRawCode(selectedCell.rawCode);
+        const isRangeSelection = getSelectedRangeCellCount() > 1;
+        const shiftMeta = normalizeShiftMeta({
+          rawCode: 'AL',
+          roleGroup: selectedCell.roleGroup || 'any',
+          displayLabel: 'ตั้งลาพักร้อน',
+          displayMode: 'leave',
+          segmentType: 'leave',
+          description: 'ระบบจะคำนวณเลข AL1-AL6 ตามลำดับวันที่ทั้งปี',
+        }, 'AL', selectedCell.roleGroup);
+        const button = document.createElement('button');
+        button.className = 'symbol-option';
+        button.type = 'button';
+        button.setAttribute('aria-label', 'ตั้งลาพักร้อน');
+        button.disabled = (!isRangeSelection && selectedIsAnnualLeave) || !isValidMonthDayColumn(selectedCell.column);
+        if (!isRangeSelection && selectedIsAnnualLeave) {
+          button.classList.add('is-current');
+        }
+
+        button.appendChild(createSymbolBadge(shiftMeta));
+
+        const text = document.createElement('span');
+        text.className = 'symbol-option-text';
+
+        const title = document.createElement('strong');
+        title.textContent = !isRangeSelection && selectedIsAnnualLeave ? 'ลาพักร้อนอยู่แล้ว' : 'ตั้งลาพักร้อน';
+
+        const meta = document.createElement('span');
+        meta.className = 'symbol-option-meta';
+        meta.textContent = 'ระบบคำนวณเลข AL อัตโนมัติทั้งปี';
+
+        const description = document.createElement('span');
+        description.className = 'symbol-option-description';
+        description.textContent = !isRangeSelection && selectedIsAnnualLeave
+          ? 'ใช้ล้างช่องนี้เมื่อต้องการเอาลาพักร้อนออก'
+          : `เพิ่มลาพักร้อนได้ไม่เกิน ${state.maxAnnualLeaveCount} วันต่อปี`;
+
+        text.appendChild(title);
+        text.appendChild(meta);
+        text.appendChild(description);
+        button.appendChild(text);
+        button.addEventListener('click', () => {
+          if (isRangeSelection) {
+            applyBulkLocalEdit('AL');
+            return;
+          }
+
+          setSelectedCellAnnualLeave();
+        });
+
+        return button;
+      }
+
+      function createComputedPublicHolidayOption(selectedCell) {
+        const selectedIsPublicHoliday = isPublicHolidayCellInfo(selectedCell);
+        const isRangeSelection = getSelectedRangeCellCount() > 1;
+        const shiftMeta = normalizeShiftMeta({
+          rawCode: 'PL',
+          roleGroup: selectedCell.roleGroup || 'any',
+          displayLabel: 'ตั้งนักขัตฤกษ์',
+          displayMode: 'leave',
+          segmentType: 'public_holiday',
+          color: '#bf9000',
+          description: 'ระบบจะคำนวณเลข Off1-Off13 ตามลำดับวันที่ทั้งปี',
+          leaveType: 'public_holiday',
+        }, 'PL', selectedCell.roleGroup);
+        const button = document.createElement('button');
+        button.className = 'symbol-option';
+        button.type = 'button';
+        button.setAttribute('aria-label', 'ตั้งนักขัตฤกษ์');
+        button.disabled = (!isRangeSelection && selectedIsPublicHoliday) || !isValidMonthDayColumn(selectedCell.column);
+        if (!isRangeSelection && selectedIsPublicHoliday) {
+          button.classList.add('is-current');
+        }
+
+        button.appendChild(createSymbolBadge(shiftMeta));
+
+        const text = document.createElement('span');
+        text.className = 'symbol-option-text';
+
+        const title = document.createElement('strong');
+        title.textContent = !isRangeSelection && selectedIsPublicHoliday ? 'นักขัตฤกษ์อยู่แล้ว' : 'ตั้งนักขัตฤกษ์';
+
+        const meta = document.createElement('span');
+        meta.className = 'symbol-option-meta';
+        meta.textContent = 'ระบบคำนวณเลข Off อัตโนมัติทั้งปี';
+
+        const description = document.createElement('span');
+        description.className = 'symbol-option-description';
+        description.textContent = !isRangeSelection && selectedIsPublicHoliday
+          ? 'ใช้ล้างช่องนี้เมื่อต้องการเอานักขัตฤกษ์ออก'
+          : `เพิ่มนักขัตฤกษ์ได้ไม่เกิน ${state.maxPublicHolidayCount} วันต่อปี`;
+
+        text.appendChild(title);
+        text.appendChild(meta);
+        text.appendChild(description);
+        button.appendChild(text);
+        button.addEventListener('click', () => {
+          if (isRangeSelection) {
+            applyBulkLocalEdit('PL');
+            return;
+          }
+
+          setSelectedCellPublicHoliday();
+        });
+
+        return button;
+      }
+
+      function getCatalogRoleRank(item, preferredRoleGroup) {
+        const itemRoleGroup = item.roleGroup || '';
+        if (!preferredRoleGroup) {
+          return itemRoleGroup === 'any' || !itemRoleGroup ? 0 : 1;
+        }
+
+        if (itemRoleGroup === preferredRoleGroup) {
+          return 0;
+        }
+
+        if (itemRoleGroup === 'any' || !itemRoleGroup) {
+          return 1;
+        }
+
+        return 4;
+      }
+
+      function getCatalogDisplayRank(item) {
+        const rankByDisplayMode = {
+          base: 0,
+          single: 1,
+          composite: 2,
+          addon: 3,
+          assignment: 4,
+          off: 5,
+          leave: 6,
+          empty: 7,
+          unknown: 8,
+        };
+        return rankByDisplayMode[item.displayMode] !== undefined ? rankByDisplayMode[item.displayMode] : 9;
+      }
+
+      function createSymbolOption(item, selectedCell) {
+        const rawCode = item.rawCode || '';
+        const shiftMeta = normalizeShiftMeta(item, rawCode, selectedCell.roleGroup);
+        const button = document.createElement('button');
+        button.className = 'symbol-option';
+        button.type = 'button';
+        button.setAttribute('aria-label', `ใส่รหัส ${rawCode}`);
+        if (rawCode === selectedCell.rawCode) {
+          button.classList.add('is-current');
+        }
+
+        button.appendChild(createSymbolBadge(shiftMeta));
+
+        const text = document.createElement('span');
+        text.className = 'symbol-option-text';
+
+        const title = document.createElement('strong');
+        title.textContent = shiftMeta.displayLabel || rawCode;
+
+        const meta = document.createElement('span');
+        meta.className = 'symbol-option-meta';
+        meta.textContent = getCatalogMetaText(shiftMeta);
+
+        const description = document.createElement('span');
+        description.className = 'symbol-option-description';
+        description.textContent = getCatalogDescriptionText(shiftMeta);
+
+        text.appendChild(title);
+        if (meta.textContent) {
+          text.appendChild(meta);
+        }
+        text.appendChild(description);
+        button.appendChild(text);
+        button.addEventListener('click', () => applyCatalogSymbol(rawCode));
+
+        return button;
+      }
+
+      function createSymbolBadge(shiftMeta) {
+        const badge = document.createElement('span');
+        badge.className = 'symbol-code-badge';
+        const rawCode = shiftMeta.rawCode || '';
+        const isComposite = isHybridShiftBadge(shiftMeta);
+
+        if (isComposite) {
+          badge.classList.add('is-composite');
+          const base = document.createElement('span');
+          base.className = 'symbol-code-base';
+          base.textContent = shiftMeta.impliedBaseCode;
+          const addon = document.createElement('span');
+          addon.className = 'symbol-code-addon';
+          addon.textContent = rawCode;
+          badge.appendChild(base);
+          badge.appendChild(addon);
+          return badge;
+        }
+
+        const colorScheme = getCatalogColorScheme(shiftMeta);
+        badge.style.setProperty('--symbol-bg', colorScheme.background);
+        badge.style.setProperty('--symbol-ink', colorScheme.ink);
+
+        badge.textContent = rawCode;
+        return badge;
+      }
+
+      function isHybridShiftBadge(shiftMeta) {
+        return Boolean(
+          shiftMeta &&
+          shiftMeta.impliedBaseCode &&
+          shiftMeta.displayMode === 'composite'
+        );
+      }
+
+      function getCatalogColorScheme(shiftMeta) {
+        if (isPublicHolidayShiftMeta(shiftMeta)) {
+          const background = shiftMeta && shiftMeta.color && parseHexColor(shiftMeta.color)
+            ? shiftMeta.color
+            : '#bf9000';
+          return { background, ink: '#ffffff' };
+        }
+
+        if (shiftMeta && shiftMeta.color && parseHexColor(shiftMeta.color)) {
+          return {
+            background: shiftMeta.color,
+            ink: readableTextColor(shiftMeta.color),
+          };
+        }
+
+        const rawCode = String((shiftMeta && shiftMeta.rawCode) || '').trim();
+        const upperCode = rawCode.toUpperCase();
+        const displayMode = shiftMeta && shiftMeta.displayMode ? shiftMeta.displayMode : '';
+        const segmentType = shiftMeta && shiftMeta.segmentType ? shiftMeta.segmentType : '';
+
+        if (/^OFF\d*$/i.test(rawCode)) {
+          return { background: '#00a9e0', ink: '#ffffff' };
+        }
+
+        if (/^(AL|BL|ML|PL|SL)\d*$/i.test(rawCode)) {
+          return { background: '#ff1010', ink: '#ffffff' };
+        }
+
+        if (upperCode === 'RXM') {
+          return { background: '#075be8', ink: '#ffffff' };
+        }
+
+        if (upperCode === 'HM') {
+          return { background: '#6b3fa0', ink: '#ffffff' };
+        }
+
+        if (upperCode === 'PRODUCT TRAINING') {
+          return { background: '#e77bea', ink: '#111827' };
+        }
+
+        if (upperCode === 'OFFICE' || upperCode === 'O-1' || segmentType === 'office') {
+          return { background: '#fff200', ink: '#101820' };
+        }
+
+        if (/^1\/3H$/i.test(rawCode)) {
+          return { background: '#2f5f25', ink: '#ffffff' };
+        }
+
+        if (/^1[123]H/i.test(rawCode) || upperCode === '12H') {
+          return { background: '#00ff00', ink: '#002b18' };
+        }
+
+        if (/^\d+H-\d+$/i.test(rawCode) || /^3H$/i.test(rawCode) || /^4H$/i.test(rawCode)) {
+          return { background: '#002060', ink: '#ffffff' };
+        }
+
+        if (upperCode === '10T') {
+          return { background: '#fff200', ink: '#101820' };
+        }
+
+        if (upperCode === '0T') {
+          return { background: '#dff0e8', ink: '#063f2c' };
+        }
+
+        if (rawCode === '1' || rawCode === '2' || displayMode === 'single' || segmentType === 'regular') {
+          return { background: '#dbeaf1', ink: '#063f2c' };
+        }
+
+        return { background: '#e7f2ed', ink: '#164f3b' };
+      }
+
+      function getCatalogMetaText(shiftMeta) {
+        if (!shiftMeta) {
+          return '';
+        }
+
+        if (shiftMeta.displayMode === 'composite') {
+          return buildCompositeCatalogMeta(shiftMeta);
+        }
+
+        if (shiftMeta.rawCode === 'O-1' || shiftMeta.segmentType === 'office') {
+          return buildOfficeCatalogMeta(shiftMeta);
+        }
+
+        return [
+          getRoleGroupDisplay(shiftMeta.roleGroup),
+          getDisplayModeDisplay(shiftMeta.displayMode),
+          buildCatalogShiftHints(shiftMeta),
+        ].filter(Boolean).join(' • ');
+      }
+
+      function getCatalogDescriptionText(shiftMeta) {
+        if (!shiftMeta) {
+          return 'ยังไม่มีรายละเอียดเพิ่มเติม';
+        }
+
+        if (shiftMeta.rawCode === 'O-1' || shiftMeta.segmentType === 'office') {
+          return 'ทำงานสำนักงาน 08.00-17.00';
+        }
+
+        return shiftMeta.description || 'ยังไม่มีรายละเอียดเพิ่มเติม';
+      }
+
+      function buildOfficeCatalogMeta(shiftMeta) {
+        const timeRange = shiftMeta.start || shiftMeta.end
+          ? `${shiftMeta.start || '?'}-${shiftMeta.end || '?'}`
+          : '08:00-17:00';
+        return ['สำนักงาน', timeRange].filter(Boolean).join(' • ');
+      }
+
+      function buildCompositeCatalogMeta(shiftMeta) {
+        const displayMode = getDisplayModeDisplay(shiftMeta.displayMode) || 'เวรผสม';
+        const base = shiftMeta.impliedBaseCode ? `สำนักงาน ${shiftMeta.impliedBaseCode}` : '';
+        const addon = buildCompositeAddonLabel(shiftMeta);
+
+        return [displayMode, base, addon].filter(Boolean).join(' • ');
+      }
+
+      function buildCompositeAddonLabel(shiftMeta) {
+        const location = shiftMeta.locationCode ? `สาขา ${shiftMeta.locationCode}` : '';
+
+        if (shiftMeta.segmentType === 'branch_ot') {
+          return ['OT', location].filter(Boolean).join(' ');
+        }
+
+        const segment = getSegmentTypeDisplay(shiftMeta.segmentType);
+        if (segment && location) {
+          return `${segment} ${location}`;
+        }
+
+        return location || segment;
+      }
+
+      function getRoleGroupDisplay(roleGroup) {
+        const labels = {
+          senior_pharmacist: 'เภสัชกรอาวุโส',
+          operation_pharmacist: 'เภสัชปฏิบัติการ',
+          assistant: 'ผู้ช่วยเภสัชกร',
+          any: '',
+          unknown: '',
+        };
+        return labels[roleGroup] !== undefined ? labels[roleGroup] : roleGroup || '';
+      }
+
+      function getDisplayModeDisplay(displayMode) {
+        const labels = {
+          addon: 'งานเสริม',
+          assignment: 'งานมอบหมาย',
+          base: 'เวรฐาน',
+          composite: 'เวรผสม',
+          leave: 'ลา',
+          off: 'วันหยุด',
+          single: 'เวรเดี่ยว',
+        };
+        return labels[displayMode] || displayMode || '';
+      }
+
+      function getSegmentTypeDisplay(segmentType) {
+        const labels = {
+          branch: 'สาขา',
+          branch_ot: 'สาขา OT',
+          leave: 'ลา',
+          meeting: 'ประชุม/งานพิเศษ',
+          office: 'สำนักงาน',
+          off: 'วันหยุด',
+          ot: 'OT',
+          public_holiday: 'นักขัตฤกษ์',
+          regular: 'เวรปกติ',
+        };
+        return labels[segmentType] || segmentType || '';
+      }
+
+      function buildCatalogShiftHints(shiftMeta) {
+        if (!shiftMeta) {
+          return '';
+        }
+
+        const timeRange = shiftMeta.start || shiftMeta.end
+          ? `${shiftMeta.start || '?'}-${shiftMeta.end || '?'}`
+          : '';
+        const segment = getSegmentTypeDisplay(shiftMeta.segmentType);
+        const location = shiftMeta.locationCode ? `ที่ ${shiftMeta.locationCode}` : '';
+        const impliedBase = shiftMeta.impliedBaseCode ? `ฐาน ${shiftMeta.impliedBaseCode}` : '';
+
+        return [timeRange, segment, location, impliedBase].filter(Boolean).join(' • ');
+      }
+
+      function isOffRawCode(rawCode) {
+        return /^off(?:[1-6])?$/i.test(String(rawCode || '').trim());
+      }
+
+      function isOffLikeRawCode(rawCode) {
+        return /^off\d*$/i.test(String(rawCode || '').trim());
+      }
+
+      function isAnnualLeaveRawCode(rawCode) {
+        return /^AL(?:[1-6])?$/i.test(String(rawCode || '').trim());
+      }
+
+      function isAnnualLeaveLikeRawCode(rawCode) {
+        return /^AL\d*$/i.test(String(rawCode || '').trim());
+      }
+
+      function isPublicHolidayLikeRawCode(rawCode) {
+        const code = String(rawCode || '').trim();
+        return /^PL\d*$/i.test(code) || /^public\s*holiday$/i.test(code);
+      }
+
+      function isPublicHolidaySavedRawCode(rawCode) {
+        return /^Off(?:[1-9]|1[0-3])$/i.test(String(rawCode || '').trim());
+      }
+
+      function isPublicHolidayShiftMeta(shiftMeta) {
+        return Boolean(
+          shiftMeta &&
+          (
+            shiftMeta.segmentType === 'public_holiday' ||
+            shiftMeta.displayMode === 'public_holiday' ||
+            shiftMeta.leaveType === 'public_holiday'
+          )
+        );
+      }
+
+      function isPublicHolidayBackground(background) {
+        const color = String(background || '').trim().toLowerCase();
+        return ['#bf9000', '#c49a00', '#c79a00', '#cc9900', '#ffff00', '#fff200'].includes(color);
+      }
+
+      function isPublicHolidayCellInfo(cellInfo) {
+        if (!cellInfo) {
+          return false;
+        }
+
+        return isPublicHolidayShiftMeta(cellInfo.shiftMeta) ||
+          (
+            isPublicHolidaySavedRawCode(cellInfo.rawCode) &&
+            isPublicHolidayBackground(cellInfo.background)
+          );
+      }
+
+      function isRegularMonthlyOffCellInfo(cellInfo) {
+        if (!cellInfo || !isOffRawCode(cellInfo.rawCode)) {
+          return false;
+        }
+
+        return !isPublicHolidayCellInfo(cellInfo);
+      }
+
+      function isValidMonthDayColumn(column) {
+        return Number.isInteger(getDayNumberForColumn(column));
+      }
+
+      function getDayNumberForColumn(column) {
+        const calendarRow = getWorksheetRow(4);
+        if (!calendarRow) {
+          return null;
+        }
+
+        const dayNumber = Number(getCellValue(calendarRow, column));
+        return Number.isInteger(dayNumber) && dayNumber >= 1 && dayNumber <= 31 ? dayNumber : null;
+      }
+
+      function setSelectedCellOff() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (!isValidMonthDayColumn(state.selectedCell.column)) {
+          setEditWarning('เลือกเฉพาะคอลัมน์วันที่จริงของเดือนนี้');
+          return;
+        }
+
+        const proposedRawCodes = new Map([[state.selectedCell.key, 'Off']]);
+        const result = applyEmployeeOffSequence(state.selectedCell.row, proposedRawCodes);
+        if (!result.ok) {
+          setEditWarning(result.message);
+          return;
+        }
+
+        clearEditWarning();
+        syncSelectedCellFromPending();
+        renderWorksheet(state.currentData);
+      }
+
+      function setSelectedCellOffFromSelection() {
+        if (getSelectedRangeCellCount() > 1) {
+          applyBulkLocalEdit('Off');
+          return;
+        }
+
+        setSelectedCellOff();
+      }
+
+      function clearSelectedCellOff() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (!isRegularMonthlyOffCellInfo(state.selectedCell)) {
+          setEditWarning('cell นี้ยังไม่ได้เป็น Off');
+          return;
+        }
+
+        applyLocalEdit('');
+      }
+
+      function applyEmployeeOffSequence(rowNumber, overrideRawCodes = new Map()) {
+        const offCells = getEmployeeOffDayCells(rowNumber, overrideRawCodes);
+        if (offCells.length > state.maxMonthlyOffCount) {
+          return {
+            ok: false,
+            message: `พนักงานนี้มี Off ได้ไม่เกิน ${state.maxMonthlyOffCount} วันต่อเดือน`,
+          };
+        }
+
+        offCells.forEach((cellInfo, index) => {
+          setPendingRawCodeForCell(cellInfo, `Off${index + 1}`);
+        });
+
+        return { ok: true, count: offCells.length };
+      }
+
+      function getEmployeeOffDayCells(rowNumber, overrideRawCodes = new Map()) {
+        return getEmployeeMonthDayCells(rowNumber)
+          .map((cellInfo) => ({
+            ...cellInfo,
+            rawCode: getEffectiveRawCodeForCell(cellInfo, overrideRawCodes),
+            shiftMeta: getEffectiveShiftMetaForCell(cellInfo),
+          }))
+          .filter((cellInfo) => isRegularMonthlyOffCellInfo(cellInfo))
+          .sort((a, b) => a.dayNumber - b.dayNumber || a.column - b.column);
+      }
+
+      function getEmployeeMonthDayCells(rowNumber) {
+        const row = getWorksheetRow(rowNumber);
+        if (!row) {
+          return [];
+        }
+
+        return row.cells
+          .filter((cell) => isScheduleColumn(cell) && isValidMonthDayColumn(cell.column))
+          .map((cell) => {
+            const key = getPendingEditKey(state.currentSheetName, cell.row, cell.column);
+            const roleGroup = getCellRoleGroup(cell, rowNumber);
+            const shiftMeta = getCellShiftMeta(cell);
+            return {
+              a1: cell.a1,
+              background: cell.background || '',
+              column: cell.column,
+              dateLabel: getDateLabel(cell.column),
+              dayNumber: getDayNumberForColumn(cell.column),
+              employeeLabel: getEmployeeLabel(cell.row),
+              fontColor: cell.fontColor || '',
+              key,
+              originalRawCode: cell.value || '',
+              originalShiftMeta: shiftMeta,
+              roleGroup,
+              row: cell.row,
+              sheetName: state.currentSheetName,
+              shiftMeta,
+            };
+          });
+      }
+
+      function getCellRoleGroup(cell, rowNumber) {
+        if (cell && cell.shiftMeta && cell.shiftMeta.roleGroup) {
+          return cell.shiftMeta.roleGroup;
+        }
+
+        if (state.selectedCell && state.selectedCell.row === rowNumber && state.selectedCell.roleGroup) {
+          return state.selectedCell.roleGroup;
+        }
+
+        const row = getWorksheetRow(rowNumber);
+        const firstMetaCell = row && row.cells.find((item) => item.shiftMeta && item.shiftMeta.roleGroup);
+        return firstMetaCell && firstMetaCell.shiftMeta ? firstMetaCell.shiftMeta.roleGroup : '';
+      }
+
+      function getEffectiveRawCodeForCell(cellInfo, overrideRawCodes = new Map()) {
+        if (overrideRawCodes.has(cellInfo.key)) {
+          return String(overrideRawCodes.get(cellInfo.key) || '').trim();
+        }
+
+        const pendingEdit = state.pendingEdits.get(cellInfo.key);
+        if (pendingEdit) {
+          return String(pendingEdit.rawCode || '').trim();
+        }
+
+        return String(cellInfo.originalRawCode || '').trim();
+      }
+
+      function getEffectiveShiftMetaForCell(cellInfo) {
+        const pendingEdit = state.pendingEdits.get(cellInfo.key);
+        if (pendingEdit && pendingEdit.shiftMeta) {
+          return pendingEdit.shiftMeta;
+        }
+
+        return cellInfo.shiftMeta || cellInfo.originalShiftMeta || null;
+      }
+
+      function setPendingRawCodeForCell(cellInfo, rawCode, shiftMetaOverride) {
+        const nextRawCode = String(rawCode || '').trim();
+        const originalRawCode = String(cellInfo.originalRawCode || '').trim();
+        const roleGroup = cellInfo.roleGroup || '';
+        const nextShiftMeta = shiftMetaOverride || resolveShiftMetaForRawCode(nextRawCode, roleGroup);
+
+        if (nextRawCode === originalRawCode) {
+          state.pendingEdits.delete(cellInfo.key);
+          return {
+            rawCode: nextRawCode,
+            hasPendingEdit: false,
+            pendingActionType: '',
+            shiftMeta: nextShiftMeta,
+          };
+        }
+
+        const pendingActionType = getPendingActionType_(originalRawCode, nextRawCode);
+        state.pendingEdits.set(cellInfo.key, {
+          a1: cellInfo.a1,
+          actionType: pendingActionType,
+          column: cellInfo.column,
+          dateLabel: cellInfo.dateLabel,
+          dayNumber: cellInfo.dayNumber || 0,
+          employeeLabel: cellInfo.employeeLabel,
+          background: cellInfo.background || '',
+          fontColor: cellInfo.fontColor || '',
+          month: cellInfo.month || getMonthNumberFromSheetName(cellInfo.sheetName),
+          originalRawCode,
+          originalShiftMeta: cellInfo.originalShiftMeta || null,
+          roleGroup,
+          rawCode: nextRawCode,
+          row: cellInfo.row,
+          sheetName: cellInfo.sheetName,
+          shiftMeta: nextShiftMeta,
+          workDate: cellInfo.workDate || '',
+          year: cellInfo.year || getCurrentScheduleYear(),
+        });
+
+        return {
+          rawCode: nextRawCode,
+          hasPendingEdit: true,
+          pendingActionType,
+          shiftMeta: nextShiftMeta,
+        };
+      }
+
+      function syncSelectedCellFromPending() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        const pendingEdit = state.pendingEdits.get(state.selectedCell.key);
+        if (pendingEdit) {
+          state.selectedCell = {
+            ...state.selectedCell,
+            hasPendingEdit: true,
+            pendingActionType: pendingEdit.actionType,
+            rawCode: pendingEdit.rawCode,
+            shiftMeta: pendingEdit.shiftMeta || resolveShiftMetaForRawCode(pendingEdit.rawCode, pendingEdit.roleGroup),
+          };
+          return;
+        }
+
+        const originalRawCode = state.selectedCell.originalRawCode || '';
+        state.selectedCell = {
+          ...state.selectedCell,
+          hasPendingEdit: false,
+          pendingActionType: '',
+          rawCode: originalRawCode,
+          shiftMeta: state.selectedCell.originalShiftMeta || resolveShiftMetaForRawCode(originalRawCode, state.selectedCell.roleGroup),
+        };
+      }
+
+      function normalizePendingOffSequences() {
+        const rowsToNormalize = new Set();
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (pendingEdit.sheetName === state.currentSheetName) {
+            rowsToNormalize.add(pendingEdit.row);
+          }
+        });
+
+        if (state.selectedCell) {
+          rowsToNormalize.add(state.selectedCell.row);
+        }
+
+        for (const rowNumber of rowsToNormalize) {
+          const result = applyEmployeeOffSequence(rowNumber);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            return false;
+          }
+        }
+
+        syncSelectedCellFromPending();
+        return true;
+      }
+
+      function setSelectedCellAnnualLeave() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (!isValidMonthDayColumn(state.selectedCell.column)) {
+          setEditWarning('เลือกเฉพาะคอลัมน์วันที่จริงของเดือนนี้');
+          return;
+        }
+
+        applyAnnualLeaveEdit('AL');
+      }
+
+      function applyAnnualLeaveEdit(rawCode) {
+        if (!state.selectedCell || !state.currentData) {
+          return;
+        }
+
+        const selectedCell = state.selectedCell;
+        const nextRawCode = isAnnualLeaveLikeRawCode(rawCode) ? 'AL' : String(rawCode || '').trim();
+        setEditWarning('กำลังตรวจสอบลาพักร้อนทั้งปี...');
+
+        fetchEmployeeAnnualLeaveYearCells(selectedCell)
+          .then((yearData) => {
+            const selectedCellInfo = getSelectedAnnualLeaveCellInfo(selectedCell, yearData);
+            const proposedRawCodes = new Map([[selectedCellInfo.key, nextRawCode]]);
+            const result = applyEmployeeAnnualLeaveSequence(yearData, selectedCellInfo, proposedRawCodes);
+            if (!result.ok) {
+              setEditWarning(result.message);
+              return;
+            }
+
+            clearEditWarning();
+            syncSelectedCellFromPending();
+            renderWorksheet(state.currentData);
+          })
+          .catch((error) => {
+            setEditWarning(error && error.message ? error.message : String(error));
+          });
+      }
+
+      function fetchEmployeeAnnualLeaveYearCells(selectedCell) {
+        const year = getCurrentScheduleYear();
+        const cacheKey = getAnnualLeaveCacheKey(selectedCell.row, year);
+
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler((yearData) => {
+              const normalizedData = normalizeAnnualLeaveYearData(yearData);
+              state.annualLeaveYearCache.set(cacheKey, normalizedData);
+              resolve(normalizedData);
+            })
+            .withFailureHandler(reject)
+            .getEmployeeAnnualLeaveYearCells({
+              sheetName: state.currentSheetName,
+              row: selectedCell.row,
+              employeeLabel: selectedCell.employeeLabel || '',
+              year,
+            });
+        });
+      }
+
+      function normalizeAnnualLeaveYearData(yearData) {
+        const data = yearData || {};
+        return {
+          ...data,
+          cells: (data.cells || []).map((cell) => normalizeAnnualLeaveCellInfo(cell)),
+        };
+      }
+
+      function normalizeAnnualLeaveCellInfo(cell) {
+        const key = getPendingEditKey(cell.sheetName, Number(cell.row), Number(cell.column));
+        return {
+          a1: cell.a1 || '',
+          column: Number(cell.column),
+          dateLabel: cell.dateLabel || String(cell.dayNumber || ''),
+          dayNumber: Number(cell.dayNumber),
+          employeeLabel: cell.employeeLabel || '',
+          key,
+          month: Number(cell.month),
+          originalRawCode: cell.previousRawCode || cell.rawCode || '',
+          originalShiftMeta: null,
+          roleGroup: state.selectedCell && state.selectedCell.roleGroup ? state.selectedCell.roleGroup : '',
+          row: Number(cell.row),
+          sheetName: cell.sheetName,
+          shiftMeta: null,
+          workDate: cell.workDate || '',
+          year: Number(cell.year) || getCurrentScheduleYear(),
+        };
+      }
+
+      function getSelectedAnnualLeaveCellInfo(selectedCell, yearData) {
+        const month = getMonthNumberFromSheetName(state.currentSheetName);
+        const dayNumber = getDayNumberForColumn(selectedCell.column);
+        return {
+          a1: selectedCell.a1,
+          column: selectedCell.column,
+          dateLabel: selectedCell.dateLabel,
+          dayNumber,
+          employeeLabel: selectedCell.employeeLabel,
+          key: selectedCell.key,
+          month,
+          originalRawCode: selectedCell.originalRawCode || '',
+          originalShiftMeta: selectedCell.originalShiftMeta || null,
+          roleGroup: selectedCell.roleGroup || '',
+          row: selectedCell.row,
+          sheetName: state.currentSheetName,
+          shiftMeta: selectedCell.shiftMeta || null,
+          workDate: toClientIsoDate((yearData && yearData.year) || getCurrentScheduleYear(), month, dayNumber),
+          year: (yearData && yearData.year) || getCurrentScheduleYear(),
+        };
+      }
+
+      function applyEmployeeAnnualLeaveSequence(
+        yearData,
+        selectedCellInfo,
+        overrideRawCodes = new Map(),
+        extraCandidateCells = [],
+      ) {
+        const candidatesByKey = getAnnualLeaveCandidateMap(yearData, selectedCellInfo, extraCandidateCells);
+
+        overrideRawCodes.forEach((rawCode, key) => {
+          const cellInfo = candidatesByKey.get(key);
+          if (cellInfo && !isAnnualLeaveLikeRawCode(rawCode)) {
+            setPendingRawCodeForCell(cellInfo, rawCode);
+          }
+        });
+
+        const annualLeaveCells = Array.from(candidatesByKey.values())
+          .map((cellInfo) => ({
+            ...cellInfo,
+            rawCode: getEffectiveRawCodeForCell(cellInfo, overrideRawCodes),
+          }))
+          .filter((cellInfo) => isAnnualLeaveRawCode(cellInfo.rawCode))
+          .sort(compareAnnualLeaveCells);
+
+        if (annualLeaveCells.length > state.maxAnnualLeaveCount) {
+          return {
+            ok: false,
+            message: `พนักงานนี้มีลาพักร้อนได้ไม่เกิน ${state.maxAnnualLeaveCount} วันต่อปี`,
+          };
+        }
+
+        annualLeaveCells.forEach((cellInfo, index) => {
+          setPendingRawCodeForCell(cellInfo, `AL${index + 1}`);
+        });
+
+        return { ok: true, count: annualLeaveCells.length };
+      }
+
+      function getAnnualLeaveCandidateMap(yearData, selectedCellInfo, extraCandidateCells = []) {
+        const candidatesByKey = new Map();
+        ((yearData && yearData.cells) || []).forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+        candidatesByKey.set(selectedCellInfo.key, selectedCellInfo);
+        extraCandidateCells.forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            pendingEdit.row !== selectedCellInfo.row ||
+            !isSameScheduleYear(pendingEdit.sheetName, selectedCellInfo.year) ||
+            !(
+              isAnnualLeaveRawCode(pendingEdit.rawCode) ||
+              isAnnualLeaveRawCode(pendingEdit.originalRawCode)
+            )
+          ) {
+            return;
+          }
+
+          candidatesByKey.set(
+            getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+            normalizePendingAnnualLeaveCellInfo(pendingEdit, selectedCellInfo.year),
+          );
+        });
+
+        return candidatesByKey;
+      }
+
+      function normalizePendingAnnualLeaveCellInfo(pendingEdit, year) {
+        const month = pendingEdit.month || getMonthNumberFromSheetName(pendingEdit.sheetName);
+        const dayNumber = pendingEdit.dayNumber || getDayNumberFromPendingEdit(pendingEdit);
+        return {
+          a1: pendingEdit.a1,
+          column: pendingEdit.column,
+          dateLabel: pendingEdit.dateLabel || String(dayNumber || ''),
+          dayNumber,
+          employeeLabel: pendingEdit.employeeLabel || '',
+          key: getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+          month,
+          originalRawCode: pendingEdit.originalRawCode || '',
+          originalShiftMeta: null,
+          roleGroup: pendingEdit.roleGroup || '',
+          row: pendingEdit.row,
+          sheetName: pendingEdit.sheetName,
+          shiftMeta: pendingEdit.shiftMeta || null,
+          workDate: pendingEdit.workDate || toClientIsoDate(year, month, dayNumber),
+          year,
+        };
+      }
+
+      function compareAnnualLeaveCells(left, right) {
+        const leftDate = left.workDate || toClientIsoDate(left.year, left.month, left.dayNumber);
+        const rightDate = right.workDate || toClientIsoDate(right.year, right.month, right.dayNumber);
+        const dateCompare = leftDate.localeCompare(rightDate);
+        return dateCompare || left.column - right.column;
+      }
+
+      function getCurrentScheduleYear() {
+        const selected = state.monthOptions.find((option) => option.sheetName === state.currentSheetName);
+        return selected && selected.year ? Number(selected.year) : 2026;
+      }
+
+      function getAnnualLeaveCacheKey(rowNumber, year) {
+        return `${year}:${rowNumber}`;
+      }
+
+      function setSelectedCellPublicHoliday() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (!isValidMonthDayColumn(state.selectedCell.column)) {
+          setEditWarning('เลือกเฉพาะคอลัมน์วันที่จริงของเดือนนี้');
+          return;
+        }
+
+        applyPublicHolidayEdit('PL');
+      }
+
+      function applyPublicHolidayEdit(rawCode) {
+        if (!state.selectedCell || !state.currentData) {
+          return;
+        }
+
+        const selectedCell = state.selectedCell;
+        const nextRawCode = isPublicHolidayLikeRawCode(rawCode) ? 'PL' : String(rawCode || '').trim();
+        setEditWarning('กำลังตรวจสอบนักขัตฤกษ์ทั้งปี...');
+
+        fetchEmployeePublicHolidayYearCells(selectedCell)
+          .then((yearData) => {
+            const selectedCellInfo = getSelectedPublicHolidayCellInfo(selectedCell, yearData);
+            const proposedRawCodes = new Map([[selectedCellInfo.key, nextRawCode]]);
+            const result = applyEmployeePublicHolidaySequence(yearData, selectedCellInfo, proposedRawCodes);
+            if (!result.ok) {
+              setEditWarning(result.message);
+              return;
+            }
+
+            clearEditWarning();
+            syncSelectedCellFromPending();
+            renderWorksheet(state.currentData);
+          })
+          .catch((error) => {
+            setEditWarning(error && error.message ? error.message : String(error));
+          });
+      }
+
+      function fetchEmployeePublicHolidayYearCells(selectedCell) {
+        const year = getCurrentScheduleYear();
+        const cacheKey = getPublicHolidayCacheKey(selectedCell.row, year);
+
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler((yearData) => {
+              const normalizedData = normalizePublicHolidayYearData(yearData);
+              state.maxPublicHolidayCount = normalizedData.maxPublicHolidayCount || state.maxPublicHolidayCount;
+              state.publicHolidayYearCache.set(cacheKey, normalizedData);
+              resolve(normalizedData);
+            })
+            .withFailureHandler(reject)
+            .getEmployeePublicHolidayYearCells({
+              sheetName: state.currentSheetName,
+              row: selectedCell.row,
+              employeeLabel: selectedCell.employeeLabel || '',
+              year,
+            });
+        });
+      }
+
+      function normalizePublicHolidayYearData(yearData) {
+        const data = yearData || {};
+        return {
+          ...data,
+          maxPublicHolidayCount: Number(data.maxPublicHolidayCount) || state.maxPublicHolidayCount,
+          cells: (data.cells || []).map((cell) => normalizePublicHolidayCellInfo(cell)),
+        };
+      }
+
+      function normalizePublicHolidayCellInfo(cell) {
+        const key = getPendingEditKey(cell.sheetName, Number(cell.row), Number(cell.column));
+        const shiftMeta = createPublicHolidayShiftMeta(cell.rawCode || '', cell.shiftMeta || null);
+        return {
+          a1: cell.a1 || '',
+          background: cell.background || '#bf9000',
+          column: Number(cell.column),
+          dateLabel: cell.dateLabel || String(cell.dayNumber || ''),
+          dayNumber: Number(cell.dayNumber),
+          employeeLabel: cell.employeeLabel || '',
+          fontColor: cell.fontColor || '',
+          key,
+          month: Number(cell.month),
+          originalRawCode: cell.previousRawCode || cell.rawCode || '',
+          originalShiftMeta: shiftMeta,
+          roleGroup: state.selectedCell && state.selectedCell.roleGroup ? state.selectedCell.roleGroup : '',
+          row: Number(cell.row),
+          sheetName: cell.sheetName,
+          shiftMeta,
+          workDate: cell.workDate || '',
+          year: Number(cell.year) || getCurrentScheduleYear(),
+        };
+      }
+
+      function getSelectedPublicHolidayCellInfo(selectedCell, yearData) {
+        const month = getMonthNumberFromSheetName(state.currentSheetName);
+        const dayNumber = getDayNumberForColumn(selectedCell.column);
+        const shiftMeta = isPublicHolidayCellInfo(selectedCell)
+          ? createPublicHolidayShiftMeta(selectedCell.rawCode, selectedCell.shiftMeta)
+          : selectedCell.shiftMeta || null;
+        return {
+          a1: selectedCell.a1,
+          background: selectedCell.background || '',
+          column: selectedCell.column,
+          dateLabel: selectedCell.dateLabel,
+          dayNumber,
+          employeeLabel: selectedCell.employeeLabel,
+          fontColor: selectedCell.fontColor || '',
+          key: selectedCell.key,
+          month,
+          originalRawCode: selectedCell.originalRawCode || '',
+          originalShiftMeta: selectedCell.originalShiftMeta || shiftMeta,
+          roleGroup: selectedCell.roleGroup || '',
+          row: selectedCell.row,
+          sheetName: state.currentSheetName,
+          shiftMeta,
+          workDate: toClientIsoDate((yearData && yearData.year) || getCurrentScheduleYear(), month, dayNumber),
+          year: (yearData && yearData.year) || getCurrentScheduleYear(),
+        };
+      }
+
+      function applyEmployeePublicHolidaySequence(
+        yearData,
+        selectedCellInfo,
+        overrideRawCodes = new Map(),
+        extraCandidateCells = [],
+      ) {
+        const candidatesByKey = getPublicHolidayCandidateMap(yearData, selectedCellInfo, extraCandidateCells);
+
+        overrideRawCodes.forEach((rawCode, key) => {
+          const cellInfo = candidatesByKey.get(key);
+          if (cellInfo && !isPublicHolidayLikeRawCode(rawCode)) {
+            setPendingRawCodeForCell(cellInfo, rawCode);
+          }
+        });
+
+        const publicHolidayCells = Array.from(candidatesByKey.values())
+          .map((cellInfo) => ({
+            ...cellInfo,
+            rawCode: getEffectiveRawCodeForCell(cellInfo, overrideRawCodes),
+            shiftMeta: getEffectiveShiftMetaForCell(cellInfo),
+          }))
+          .filter((cellInfo) => isPublicHolidayCandidateCellInfo(cellInfo))
+          .sort(compareYearlyScheduleCells);
+
+        if (publicHolidayCells.length > state.maxPublicHolidayCount) {
+          return {
+            ok: false,
+            message: `พนักงานนี้มีนักขัตฤกษ์ได้ไม่เกิน ${state.maxPublicHolidayCount} วันต่อปี`,
+          };
+        }
+
+        publicHolidayCells.forEach((cellInfo, index) => {
+          const computedRawCode = `Off${index + 1}`;
+          setPendingRawCodeForCell(cellInfo, computedRawCode, createPublicHolidayShiftMeta(computedRawCode, cellInfo.shiftMeta));
+        });
+
+        return { ok: true, count: publicHolidayCells.length };
+      }
+
+      function getPublicHolidayCandidateMap(yearData, selectedCellInfo, extraCandidateCells = []) {
+        const candidatesByKey = new Map();
+        ((yearData && yearData.cells) || []).forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+        candidatesByKey.set(selectedCellInfo.key, selectedCellInfo);
+        extraCandidateCells.forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            pendingEdit.row !== selectedCellInfo.row ||
+            !isSameScheduleYear(pendingEdit.sheetName, selectedCellInfo.year) ||
+            !isPublicHolidayPendingEdit(pendingEdit)
+          ) {
+            return;
+          }
+
+          candidatesByKey.set(
+            getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+            normalizePendingPublicHolidayCellInfo(pendingEdit, selectedCellInfo.year),
+          );
+        });
+
+        return candidatesByKey;
+      }
+
+      function isPublicHolidayPendingEdit(pendingEdit) {
+        return Boolean(
+          isPublicHolidayLikeRawCode(pendingEdit.rawCode) ||
+          isPublicHolidayShiftMeta(pendingEdit.shiftMeta) ||
+          isPublicHolidayShiftMeta(pendingEdit.originalShiftMeta) ||
+          (
+            isPublicHolidaySavedRawCode(pendingEdit.rawCode) &&
+            isPublicHolidayShiftMeta(pendingEdit.shiftMeta)
+          ) ||
+          (
+            isPublicHolidaySavedRawCode(pendingEdit.originalRawCode) &&
+            (
+              isPublicHolidayShiftMeta(pendingEdit.originalShiftMeta) ||
+              isPublicHolidayBackground(pendingEdit.background)
+            )
+          )
+        );
+      }
+
+      function normalizePendingPublicHolidayCellInfo(pendingEdit, year) {
+        const month = pendingEdit.month || getMonthNumberFromSheetName(pendingEdit.sheetName);
+        const dayNumber = pendingEdit.dayNumber || getDayNumberFromPendingEdit(pendingEdit);
+        const shiftMeta = pendingEdit.shiftMeta || pendingEdit.originalShiftMeta || null;
+        return {
+          a1: pendingEdit.a1,
+          background: pendingEdit.background || '',
+          column: pendingEdit.column,
+          dateLabel: pendingEdit.dateLabel || String(dayNumber || ''),
+          dayNumber,
+          employeeLabel: pendingEdit.employeeLabel || '',
+          fontColor: pendingEdit.fontColor || '',
+          key: getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+          month,
+          originalRawCode: pendingEdit.originalRawCode || '',
+          originalShiftMeta: pendingEdit.originalShiftMeta || null,
+          roleGroup: pendingEdit.roleGroup || '',
+          row: pendingEdit.row,
+          sheetName: pendingEdit.sheetName,
+          shiftMeta,
+          workDate: pendingEdit.workDate || toClientIsoDate(year, month, dayNumber),
+          year,
+        };
+      }
+
+      function isPublicHolidayCandidateCellInfo(cellInfo) {
+        return isPublicHolidayLikeRawCode(cellInfo.rawCode) || isPublicHolidayCellInfo(cellInfo);
+      }
+
+      function compareYearlyScheduleCells(left, right) {
+        const leftDate = left.workDate || toClientIsoDate(left.year, left.month, left.dayNumber);
+        const rightDate = right.workDate || toClientIsoDate(right.year, right.month, right.dayNumber);
+        const dateCompare = leftDate.localeCompare(rightDate);
+        return dateCompare || left.column - right.column;
+      }
+
+      function getPublicHolidayCacheKey(rowNumber, year) {
+        return `${year}:${rowNumber}`;
+      }
+
+      function isSameScheduleYear(sheetName, year) {
+        const option = state.monthOptions.find((item) => item.sheetName === sheetName);
+        return Boolean(option && Number(option.year) === Number(year));
+      }
+
+      function getMonthNumberFromSheetName(sheetName) {
+        const option = state.monthOptions.find((item) => item.sheetName === sheetName);
+        return option ? Number(option.month) : 0;
+      }
+
+      function getDayNumberFromPendingEdit(pendingEdit) {
+        if (pendingEdit.sheetName === state.currentSheetName) {
+          return getDayNumberForColumn(pendingEdit.column);
+        }
+
+        const match = String(pendingEdit.dateLabel || '').match(/\d+/);
+        return match ? Number(match[0]) : 0;
+      }
+
+      function toClientIsoDate(year, month, day) {
+        if (!year || !month || !day) {
+          return '';
+        }
+
+        return [
+          String(year).padStart(4, '0'),
+          String(month).padStart(2, '0'),
+          String(day).padStart(2, '0'),
+        ].join('-');
+      }
+
+      function applyCatalogSymbol(rawCode) {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (getSelectedRangeCellCount() > 1) {
+          applyBulkLocalEdit(rawCode);
+          return;
+        }
+
+        if (isPublicHolidayLikeRawCode(rawCode)) {
+          setSelectedCellPublicHoliday();
+          return;
+        }
+
+        if (isAnnualLeaveLikeRawCode(rawCode)) {
+          setSelectedCellAnnualLeave();
+          return;
+        }
+
+        if (isOffLikeRawCode(rawCode)) {
+          setSelectedCellOff();
+          return;
+        }
+
+        applyLocalEdit(rawCode);
+      }
+
+      function setDetailText(element, text) {
+        element.textContent = text;
+        element.hidden = !text;
+      }
+
+      function setEditWarning(message) {
+        elements.editWarning.textContent = message || '';
+        elements.editWarning.hidden = !message;
+      }
+
+      function clearEditWarning() {
+        setEditWarning('');
       }
 
       function clearSelectedCell() {
         state.selectedCell = null;
-        const selectedElement = elements.worksheetTable.querySelector('.editable-cell.is-selected');
-        if (selectedElement) {
-          selectedElement.classList.remove('is-selected');
+        state.selectionAnchor = null;
+        state.selectedRange = null;
+        updateSelectionClasses();
+
+        clearEditWarning();
+        updateEditActionBar();
+      }
+
+      function applyLocalEditFromInput() {
+        if (!state.selectedCell) {
+          return;
         }
 
-        updateEditActionBar();
+        const rawCode = String(elements.editRawCodeInput.value || '').trim();
+        if (getSelectedRangeCellCount() > 1) {
+          applyBulkLocalEdit(rawCode);
+          return;
+        }
+
+        if (isPublicHolidayLikeRawCode(rawCode)) {
+          setSelectedCellPublicHoliday();
+          return;
+        }
+
+        if (isAnnualLeaveLikeRawCode(rawCode)) {
+          setSelectedCellAnnualLeave();
+          return;
+        }
+
+        if (isOffLikeRawCode(rawCode)) {
+          setSelectedCellOff();
+          return;
+        }
+
+        applyLocalEdit(rawCode);
+      }
+
+      function clearSelectedCellRawCode() {
+        if (!state.selectedCell) {
+          return;
+        }
+
+        if (getSelectedRangeCellCount() > 1) {
+          applyBulkLocalEdit('');
+          return;
+        }
+
+        applyLocalEdit('');
+      }
+
+      function applyLocalEdit(rawCode) {
+        if (!state.currentData) {
+          return;
+        }
+
+        const selectedCell = state.selectedCell;
+        const nextRawCode = String(rawCode || '').trim();
+        const selectedInvolvesPublicHoliday =
+          isPublicHolidayCellInfo(selectedCell) ||
+          isPublicHolidayLikeRawCode(nextRawCode);
+
+        if (selectedInvolvesPublicHoliday) {
+          applyPublicHolidayEdit(nextRawCode);
+          return;
+        }
+
+        const selectedInvolvesAnnualLeave =
+          isAnnualLeaveRawCode(selectedCell.rawCode) ||
+          isAnnualLeaveRawCode(selectedCell.originalRawCode) ||
+          isAnnualLeaveRawCode(nextRawCode);
+
+        if (selectedInvolvesAnnualLeave) {
+          applyAnnualLeaveEdit(nextRawCode);
+          return;
+        }
+
+        const selectedInvolvesOff =
+          isOffRawCode(selectedCell.rawCode) ||
+          isOffRawCode(selectedCell.originalRawCode) ||
+          isOffRawCode(nextRawCode);
+
+        setPendingRawCodeForCell(selectedCell, nextRawCode);
+
+        if (selectedInvolvesOff) {
+          const result = applyEmployeeOffSequence(selectedCell.row);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            syncSelectedCellFromPending();
+            renderWorksheet(state.currentData);
+            return;
+          }
+        }
+
+        clearEditWarning();
+        syncSelectedCellFromPending();
+        renderWorksheet(state.currentData);
+      }
+
+      function applyBulkLocalEdit(rawCode) {
+        const cells = getSelectedEditableCellInfos();
+        if (cells.length <= 1) {
+          applyLocalEdit(rawCode);
+          return;
+        }
+
+        const nextRawCode = String(rawCode || '').trim();
+        if (isPublicHolidayLikeRawCode(nextRawCode)) {
+          applyPublicHolidayEditToCells(cells, nextRawCode);
+          return;
+        }
+
+        if (isAnnualLeaveLikeRawCode(nextRawCode)) {
+          applyAnnualLeaveEditToCells(cells, nextRawCode);
+          return;
+        }
+
+        if (isOffLikeRawCode(nextRawCode)) {
+          applyRegularOffEditToCells(cells, nextRawCode);
+          return;
+        }
+
+        if (!nextRawCode) {
+          clearBulkSelectedCells(cells);
+          return;
+        }
+
+        prepareComputedYearCachesForCells(cells)
+          .then(() => {
+            cells.forEach((cellInfo) => setPendingRawCodeForCell(cellInfo, nextRawCode));
+            if (!normalizeAffectedComputedSequences(cells)) {
+              return;
+            }
+            finishBulkEdit(`${cells.length} cells ถูกแก้เป็น ${nextRawCode}`);
+          })
+          .catch((error) => setEditWarning(error && error.message ? error.message : String(error)));
+      }
+
+      function clearBulkSelectedCells(cells) {
+        prepareComputedYearCachesForCells(cells)
+          .then(() => {
+            cells.forEach((cellInfo) => setPendingRawCodeForCell(cellInfo, ''));
+            if (!normalizeAffectedComputedSequences(cells)) {
+              return;
+            }
+            finishBulkEdit(`ล้าง ${cells.length} cells แล้ว`);
+          })
+          .catch((error) => setEditWarning(error && error.message ? error.message : String(error)));
+      }
+
+      function applyRegularOffEditToCells(cells, rawCode) {
+        const rows = new Set(cells.map((cellInfo) => cellInfo.row));
+        const overrideRawCodes = new Map(cells.map((cellInfo) => [cellInfo.key, rawCode]));
+
+        for (const rowNumber of rows) {
+          const result = applyEmployeeOffSequence(rowNumber, overrideRawCodes);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            syncSelectedCellFromPending();
+            renderWorksheet(state.currentData);
+            return;
+          }
+        }
+
+        finishBulkEdit(`${cells.length} cells ถูกตั้งเป็น Off`);
+      }
+
+      function applyAnnualLeaveEditToCells(cells, rawCode) {
+        setEditWarning('กำลังตรวจสอบลาพักร้อนทั้งปี...');
+        fetchAnnualLeaveYearDataForCells(cells)
+          .then(() => {
+            const groups = groupCellsByRowAndYear(cells);
+            for (const group of groups) {
+              const yearData = state.annualLeaveYearCache.get(getAnnualLeaveCacheKey(group.row, group.year));
+              const selectedCellInfos = group.cells.map((cellInfo) => getSelectedAnnualLeaveCellInfo(cellInfo, yearData));
+              const proposedRawCodes = new Map(selectedCellInfos.map((cellInfo) => [cellInfo.key, rawCode]));
+              const result = applyEmployeeAnnualLeaveSequence(
+                yearData,
+                selectedCellInfos[0],
+                proposedRawCodes,
+                selectedCellInfos,
+              );
+              if (!result.ok) {
+                setEditWarning(result.message);
+                return;
+              }
+            }
+
+            finishBulkEdit(`${cells.length} cells ถูกตั้งเป็นลาพักร้อน`);
+          })
+          .catch((error) => setEditWarning(error && error.message ? error.message : String(error)));
+      }
+
+      function applyPublicHolidayEditToCells(cells, rawCode) {
+        setEditWarning('กำลังตรวจสอบนักขัตฤกษ์ทั้งปี...');
+        fetchPublicHolidayYearDataForCells(cells)
+          .then(() => {
+            const groups = groupCellsByRowAndYear(cells);
+            for (const group of groups) {
+              const yearData = state.publicHolidayYearCache.get(getPublicHolidayCacheKey(group.row, group.year));
+              const selectedCellInfos = group.cells.map((cellInfo) => getSelectedPublicHolidayCellInfo(cellInfo, yearData));
+              const proposedRawCodes = new Map(selectedCellInfos.map((cellInfo) => [cellInfo.key, rawCode]));
+              const result = applyEmployeePublicHolidaySequence(
+                yearData,
+                selectedCellInfos[0],
+                proposedRawCodes,
+                selectedCellInfos,
+              );
+              if (!result.ok) {
+                setEditWarning(result.message);
+                return;
+              }
+            }
+
+            finishBulkEdit(`${cells.length} cells ถูกตั้งเป็นนักขัตฤกษ์`);
+          })
+          .catch((error) => setEditWarning(error && error.message ? error.message : String(error)));
+      }
+
+      function prepareComputedYearCachesForCells(cells) {
+        const annualCells = cells.filter((cellInfo) =>
+          isAnnualLeaveRawCode(cellInfo.rawCode) || isAnnualLeaveRawCode(cellInfo.originalRawCode),
+        );
+        const publicHolidayCells = cells.filter((cellInfo) => isPublicHolidayCellInfo(cellInfo));
+
+        return fetchAnnualLeaveYearDataForCells(annualCells)
+          .then(() => fetchPublicHolidayYearDataForCells(publicHolidayCells));
+      }
+
+      function normalizeAffectedComputedSequences(cells) {
+        const offRows = new Set();
+        cells.forEach((cellInfo) => {
+          if (
+            isRegularMonthlyOffCellInfo(cellInfo) ||
+            (!isPublicHolidayCellInfo(cellInfo) && isOffRawCode(cellInfo.originalRawCode))
+          ) {
+            offRows.add(cellInfo.row);
+          }
+        });
+
+        for (const rowNumber of offRows) {
+          const result = applyEmployeeOffSequence(rowNumber);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            return false;
+          }
+        }
+
+        if (!normalizePendingPublicHolidaySequences()) {
+          return false;
+        }
+
+        if (!normalizePendingAnnualLeaveSequences()) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function fetchAnnualLeaveYearDataForCells(cells) {
+        const groups = groupCellsByRowAndYear(cells);
+        return groups.reduce((promise, group) => {
+          return promise.then(() => {
+            const cacheKey = getAnnualLeaveCacheKey(group.row, group.year);
+            if (state.annualLeaveYearCache.has(cacheKey)) {
+              return null;
+            }
+
+            return fetchEmployeeAnnualLeaveYearCells(group.cells[0]);
+          });
+        }, Promise.resolve());
+      }
+
+      function fetchPublicHolidayYearDataForCells(cells) {
+        const groups = groupCellsByRowAndYear(cells);
+        return groups.reduce((promise, group) => {
+          return promise.then(() => {
+            const cacheKey = getPublicHolidayCacheKey(group.row, group.year);
+            if (state.publicHolidayYearCache.has(cacheKey)) {
+              return null;
+            }
+
+            return fetchEmployeePublicHolidayYearCells(group.cells[0]);
+          });
+        }, Promise.resolve());
+      }
+
+      function groupCellsByRowAndYear(cells) {
+        const groupsByKey = new Map();
+        cells.forEach((cellInfo) => {
+          const year = cellInfo.year || getCurrentScheduleYear();
+          const key = `${cellInfo.row}:${year}`;
+          if (!groupsByKey.has(key)) {
+            groupsByKey.set(key, {
+              row: cellInfo.row,
+              year,
+              cells: [],
+            });
+          }
+
+          groupsByKey.get(key).cells.push(cellInfo);
+        });
+
+        return Array.from(groupsByKey.values());
+      }
+
+      function finishBulkEdit(message) {
+        clearEditWarning();
+        syncSelectedCellFromPending();
+        renderWorksheet(state.currentData);
+        if (message) {
+          setEditWarning(message);
+        }
+      }
+
+      function revertSelectedPendingEdit() {
+        if (!state.selectedCell || !state.currentData) {
+          return;
+        }
+
+        const rowNumber = state.selectedCell.row;
+        const selectedInvolvesPublicHoliday = isPublicHolidayCellInfo(state.selectedCell);
+        const selectedInvolvesOff =
+          isRegularMonthlyOffCellInfo(state.selectedCell) ||
+          (!selectedInvolvesPublicHoliday && isOffRawCode(state.selectedCell.originalRawCode));
+
+        state.pendingEdits.delete(state.selectedCell.key);
+
+        if (selectedInvolvesPublicHoliday) {
+          const selectedCellInfo = getSelectedPublicHolidayCellInfo(state.selectedCell, { year: getCurrentScheduleYear() });
+          const cacheKey = getPublicHolidayCacheKey(selectedCellInfo.row, selectedCellInfo.year);
+          const yearData = state.publicHolidayYearCache.get(cacheKey);
+          if (yearData) {
+            const result = applyEmployeePublicHolidaySequence(yearData, selectedCellInfo);
+            if (!result.ok) {
+              setEditWarning(result.message);
+            } else {
+              clearEditWarning();
+            }
+          } else {
+            clearEditWarning();
+          }
+        } else if (selectedInvolvesOff) {
+          const result = applyEmployeeOffSequence(rowNumber);
+          if (!result.ok) {
+            setEditWarning(result.message);
+          } else {
+            clearEditWarning();
+          }
+        } else {
+          clearEditWarning();
+        }
+
+        syncSelectedCellFromPending();
+        renderWorksheet(state.currentData);
+      }
+
+      function openChangeReviewModal() {
+        const payload = buildPendingChangesPayload();
+        if (payload.length === 0) {
+          return;
+        }
+
+        elements.changeReviewSubmit.disabled = false;
+        elements.changeReviewSubmit.textContent = 'บันทึกลงชีต';
+        elements.changeReviewSummary.textContent = `มี ${payload.length} cell ที่จะเปลี่ยน`;
+        elements.changeReviewList.replaceChildren();
+        payload.forEach((item) => {
+          const reviewItem = document.createElement('div');
+          reviewItem.className = 'review-item';
+
+          const title = document.createElement('strong');
+          title.textContent = `${item.a1} • ${item.employeeLabel || 'ไม่ระบุพนักงาน'}`;
+
+          const change = document.createElement('div');
+          change.textContent = `${formatRawCodeForReview(item.previousRawCode)} -> ${formatRawCodeForReview(item.nextRawCode)}`;
+
+          const meta = document.createElement('span');
+          meta.textContent = [
+            item.sheetName || '',
+            item.dateLabel || 'ไม่ระบุวันที่',
+            getActionTypeDisplay(item.actionType),
+            getReviewMeaningText(item.nextRawCode, item.nextShiftMeta),
+          ].filter(Boolean).join(' • ');
+
+          reviewItem.appendChild(title);
+          reviewItem.appendChild(change);
+          reviewItem.appendChild(meta);
+          elements.changeReviewList.appendChild(reviewItem);
+        });
+
+        elements.changeReviewModal.hidden = false;
+      }
+
+      function closeChangeReviewModal() {
+        elements.changeReviewModal.hidden = true;
+      }
+
+      function buildPendingChangesPayload() {
+        if (!normalizePendingPublicHolidaySequences()) {
+          return [];
+        }
+
+        if (!normalizePendingAnnualLeaveSequences()) {
+          return [];
+        }
+
+        if (!normalizePendingOffSequences()) {
+          return [];
+        }
+
+        return Array.from(state.pendingEdits.values()).map((pendingEdit) => ({
+          actionType: pendingEdit.actionType || getPendingActionType_(pendingEdit.originalRawCode, pendingEdit.rawCode),
+          sourceSheetName: state.currentSheetName,
+          sheetName: pendingEdit.sheetName,
+          row: pendingEdit.row,
+          column: pendingEdit.column,
+          a1: pendingEdit.a1,
+          employeeLabel: pendingEdit.employeeLabel,
+          dateLabel: pendingEdit.dateLabel,
+          previousRawCode: pendingEdit.originalRawCode,
+          nextRawCode: pendingEdit.rawCode,
+          roleGroup: pendingEdit.roleGroup || '',
+          nextShiftMeta: pendingEdit.shiftMeta || null,
+        }));
+      }
+
+      function normalizePendingPublicHolidaySequences() {
+        const publicHolidayRows = new Map();
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (!isPublicHolidayPendingEdit(pendingEdit)) {
+            return;
+          }
+
+          const year = pendingEdit.year || getCurrentScheduleYear();
+          const cacheKey = getPublicHolidayCacheKey(pendingEdit.row, year);
+          if (!publicHolidayRows.has(cacheKey)) {
+            publicHolidayRows.set(cacheKey, {
+              year,
+              row: pendingEdit.row,
+              sample: normalizePendingPublicHolidayCellInfo(pendingEdit, year),
+            });
+          }
+        });
+
+        for (const [cacheKey, item] of publicHolidayRows.entries()) {
+          const yearData = state.publicHolidayYearCache.get(cacheKey);
+          if (!yearData) {
+            setEditWarning('กรุณากดตั้ง/ล้างนักขัตฤกษ์อีกครั้งก่อนยืนยัน เพื่อให้ระบบตรวจทั้งปี');
+            return false;
+          }
+
+          const result = applyEmployeePublicHolidaySequence(yearData, item.sample);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            return false;
+          }
+        }
+
+        syncSelectedCellFromPending();
+        return true;
+      }
+
+      function normalizePendingAnnualLeaveSequences() {
+        const annualRows = new Map();
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            !(
+              isAnnualLeaveRawCode(pendingEdit.rawCode) ||
+              isAnnualLeaveRawCode(pendingEdit.originalRawCode)
+            )
+          ) {
+            return;
+          }
+
+          const year = pendingEdit.year || getCurrentScheduleYear();
+          const cacheKey = getAnnualLeaveCacheKey(pendingEdit.row, year);
+          if (!annualRows.has(cacheKey)) {
+            annualRows.set(cacheKey, {
+              year,
+              row: pendingEdit.row,
+              sample: normalizePendingAnnualLeaveCellInfo(pendingEdit, year),
+            });
+          }
+        });
+
+        for (const [cacheKey, item] of annualRows.entries()) {
+          const yearData = state.annualLeaveYearCache.get(cacheKey);
+          if (!yearData) {
+            setEditWarning('กรุณากดตั้ง/ล้างลาพักร้อนอีกครั้งก่อนยืนยัน เพื่อให้ระบบตรวจทั้งปี');
+            return false;
+          }
+
+          const result = applyEmployeeAnnualLeaveSequence(yearData, item.sample);
+          if (!result.ok) {
+            setEditWarning(result.message);
+            return false;
+          }
+        }
+
+        syncSelectedCellFromPending();
+        return true;
+      }
+
+      function getPendingActionType_(previousRawCode, nextRawCode) {
+        if (previousRawCode && !nextRawCode) {
+          return 'delete';
+        }
+
+        if (!previousRawCode && nextRawCode) {
+          return 'create';
+        }
+
+        return 'update';
+      }
+
+      function getPendingActionLabel(actionType) {
+        if (actionType === 'create') {
+          return 'รอเพิ่มใหม่';
+        }
+
+        if (actionType === 'delete') {
+          return 'รอลบ';
+        }
+
+        if (actionType === 'update') {
+          return 'รอแก้ไข';
+        }
+
+        return 'รอปรับ';
+      }
+
+      function getActionTypeDisplay(actionType) {
+        if (actionType === 'create') {
+          return 'create';
+        }
+
+        if (actionType === 'delete' || actionType === 'clear') {
+          return 'delete';
+        }
+
+        return actionType || '';
+      }
+
+      function formatRawCodeForReview(rawCode) {
+        return rawCode || '(ว่าง)';
+      }
+
+      function getReviewMeaningText(rawCode, shiftMeta) {
+        const label = getMeaningDisplayLabel(rawCode, shiftMeta);
+        const hints = buildShiftHints(shiftMeta);
+        const description = shiftMeta && shiftMeta.description ? shiftMeta.description : '';
+        const labelText = label && label !== (rawCode || '(ว่าง)') ? `ความหมาย: ${label}` : '';
+
+        return [labelText, hints, description].filter(Boolean).join(' • ');
+      }
+
+      function getMeaningDisplayLabel(rawCode, shiftMeta) {
+        if (shiftMeta && shiftMeta.displayLabel) {
+          return shiftMeta.displayLabel;
+        }
+
+        return rawCode || '(ว่าง)';
+      }
+
+      function buildShiftHints(shiftMeta) {
+        if (!shiftMeta) {
+          return '';
+        }
+
+        const timeRange = shiftMeta.start || shiftMeta.end
+          ? `เวลา: ${shiftMeta.start || '?'}-${shiftMeta.end || '?'}`
+          : '';
+        const breakRange = shiftMeta.breakStart || shiftMeta.breakEnd
+          ? `พัก: ${shiftMeta.breakStart || '?'}-${shiftMeta.breakEnd || '?'}`
+          : '';
+        const segment = shiftMeta.segmentType && !['empty', 'unknown'].includes(shiftMeta.segmentType)
+          ? `ประเภท: ${getSegmentTypeDisplay(shiftMeta.segmentType)}`
+          : '';
+        const location = shiftMeta.locationCode ? `สาขา/ที่ทำงาน: ${shiftMeta.locationCode}` : '';
+        const impliedBase = shiftMeta.impliedBaseCode ? `ฐาน: ${shiftMeta.impliedBaseCode}` : '';
+
+        return [timeRange, breakRange, segment, location, impliedBase].filter(Boolean).join(' • ');
+      }
+
+      function resolveShiftMetaForRawCode(rawCode, roleGroup) {
+        const code = String(rawCode || '').trim();
+        const preferredRoleGroup = roleGroup || '';
+        const dictionaryItems = (state.currentData && state.currentData.shiftDictionaryItems) || [];
+        const roleMatch = dictionaryItems.find((item) => {
+          return item.rawCode === code && preferredRoleGroup && item.roleGroup === preferredRoleGroup;
+        });
+        const genericMatch = dictionaryItems.find((item) => item.rawCode === code && item.roleGroup === 'any');
+        const anyRoleMatch = dictionaryItems.find((item) => item.rawCode === code);
+
+        return normalizeShiftMeta(roleMatch || genericMatch || anyRoleMatch, code, preferredRoleGroup);
+      }
+
+      function normalizeShiftMeta(item, rawCode, roleGroup) {
+        if (!item) {
+          return {
+            rawCode,
+            displayLabel: rawCode || '(ว่าง)',
+            displayMode: rawCode ? 'unknown' : 'empty',
+            roleGroup: roleGroup || '',
+            segmentType: rawCode ? 'unknown' : 'empty',
+            locationCode: '',
+            start: '',
+            breakStart: '',
+            breakEnd: '',
+            end: '',
+            expectedWorkMinutes: '',
+            impliedBaseCode: '',
+            color: '',
+            description: rawCode ? '' : 'ไม่มีรหัสเวร',
+            leaveType: '',
+          };
+        }
+
+        return {
+          rawCode: item.rawCode || rawCode,
+          displayLabel: item.displayLabel || item.rawCode || rawCode || '(ว่าง)',
+          displayMode: item.displayMode || '',
+          roleGroup: roleGroup || item.roleGroup || '',
+          segmentType: item.segmentType || '',
+          locationCode: item.locationCode || '',
+          start: item.start || '',
+          breakStart: item.breakStart || '',
+          breakEnd: item.breakEnd || '',
+          end: item.end || '',
+          expectedWorkMinutes: item.expectedWorkMinutes || '',
+          impliedBaseCode: item.impliedBaseCode || '',
+          color: item.color || '',
+          description: item.description || '',
+          leaveType: item.leaveType || '',
+          dictionarySource: item.source || item.dictionarySource || null,
+        };
+      }
+
+      function createPublicHolidayShiftMeta(rawCode, baseMeta) {
+        const code = String(rawCode || '').trim();
+        const base = baseMeta || {};
+        return normalizeShiftMeta({
+          rawCode: code,
+          displayLabel: code || 'PL',
+          displayMode: 'leave',
+          roleGroup: base.roleGroup || 'any',
+          segmentType: 'public_holiday',
+          color: '#bf9000',
+          description: 'วันหยุดนักขัตฤกษ์',
+          leaveType: 'public_holiday',
+        }, code, base.roleGroup || 'any');
+      }
+
+      function submitPendingChanges() {
+        const payload = buildPendingChangesPayload();
+        if (payload.length === 0) {
+          return;
+        }
+
+        elements.changeReviewSubmit.disabled = true;
+        elements.changeReviewSubmit.textContent = 'กำลังบันทึก...';
+        elements.changeReviewSummary.textContent = `กำลังบันทึก ${payload.length} รายการลง Google Sheet`;
+
+        google.script.run
+          .withSuccessHandler((result) => handleSaveResult(result, payload))
+          .withFailureHandler(handleSaveError)
+          .saveScheduleChanges(payload);
+      }
+
+      function handleSaveResult(result, payload) {
+        const saveResult = result || { successCount: 0, failedCount: payload.length, items: [] };
+        const successfulIndexes = new Set(
+          (saveResult.items || []).filter((item) => item.ok).map((item) => item.index),
+        );
+
+        payload.forEach((item, index) => {
+          if (successfulIndexes.has(index)) {
+            state.pendingEdits.delete(getPendingEditKey(item.sheetName, item.row, item.column));
+          }
+        });
+
+        renderSaveResult(saveResult, payload);
+        elements.changeReviewSubmit.disabled = state.pendingEdits.size === 0;
+        elements.changeReviewSubmit.textContent = 'บันทึกลงชีต';
+        state.selectedCell = null;
+        loadWorksheet(state.currentSheetName);
+      }
+
+      function handleSaveError(error) {
+        elements.changeReviewSummary.textContent = error && error.message ? error.message : String(error);
+        elements.changeReviewSubmit.disabled = false;
+        elements.changeReviewSubmit.textContent = 'บันทึกลงชีต';
+      }
+
+      function renderSaveResult(result, payload) {
+        const summaryUpdates = result.summaryUpdates || [];
+        const successfulSummaryUpdates = summaryUpdates.filter((item) => item.ok).length;
+        elements.changeReviewSummary.textContent = [
+          `บันทึกสำเร็จ ${result.successCount || 0} รายการ`,
+          `ไม่สำเร็จ ${result.failedCount || 0} รายการ`,
+          successfulSummaryUpdates ? `อัปเดตคงเหลือนักขัตฤกษ์/ลาพักร้อน ${successfulSummaryUpdates} แถว` : '',
+        ].filter(Boolean).join(', ');
+        elements.changeReviewList.replaceChildren();
+
+        (result.items || []).forEach((item) => {
+          const source = payload[item.index] || item;
+          const reviewItem = document.createElement('div');
+          reviewItem.className = 'review-item';
+
+          const title = document.createElement('strong');
+          title.textContent = `${item.ok ? 'สำเร็จ' : 'ไม่สำเร็จ'} • ${source.a1 || item.a1 || '-'}`;
+
+          const change = document.createElement('div');
+          change.textContent =
+            `${formatRawCodeForReview(source.previousRawCode)} -> ${formatRawCodeForReview(source.nextRawCode)}`;
+
+          const meta = document.createElement('span');
+          meta.textContent = [
+            getReviewMeaningText(source.nextRawCode, source.nextShiftMeta),
+            item.message || item.status || '',
+          ].filter(Boolean).join(' • ');
+
+          reviewItem.appendChild(title);
+          reviewItem.appendChild(change);
+          reviewItem.appendChild(meta);
+          elements.changeReviewList.appendChild(reviewItem);
+        });
+
+        summaryUpdates.forEach((item) => {
+          const reviewItem = document.createElement('div');
+          reviewItem.className = 'review-item';
+
+          const title = document.createElement('strong');
+          title.textContent = `${item.ok ? 'อัปเดตคงเหลือ' : 'อัปเดตคงเหลือไม่สำเร็จ'} • ${item.sheetName || '-'}`;
+
+          const change = document.createElement('div');
+          change.textContent = item.ok
+            ? `${item.a1 || '-'} = ${item.displayValue || '-'}`
+            : item.message || 'ไม่สามารถอัปเดตช่องคงเหลือได้';
+
+          const meta = document.createElement('span');
+          meta.textContent = item.ok
+            ? `ใช้แล้ว นักขัตฤกษ์ ${item.publicHolidayUsed}, ลาพักร้อน ${item.annualLeaveUsed}`
+            : '';
+
+          reviewItem.appendChild(title);
+          reviewItem.appendChild(change);
+          if (meta.textContent) {
+            reviewItem.appendChild(meta);
+          }
+          elements.changeReviewList.appendChild(reviewItem);
+        });
       }
 
       function openMonthModal() {
@@ -866,6 +4154,294 @@
       function updateMonthButton() {
         const selected = state.monthOptions.find((option) => option.sheetName === state.currentSheetName);
         elements.monthButton.textContent = selected ? selected.thaiMonthName : 'เลือกเดือน';
+      }
+
+      function withDraftComputedSummary(cell, rowClass) {
+        if (
+          rowClass !== 'data-row' ||
+          cell.column !== state.holidayLeaveColumn ||
+          !rowHasPendingHolidayLeaveChange(cell.row, getCurrentScheduleYear())
+        ) {
+          return cell;
+        }
+
+        const snapshot = calculateDraftHolidayLeaveSnapshot(cell.row, cell.value);
+        if (!snapshot || snapshot.displayValue === String(cell.value || '').trim()) {
+          return cell;
+        }
+
+        return {
+          ...cell,
+          draftHolidayLeavePreview: true,
+          hasPendingEdit: true,
+          originalValue: cell.originalValue || cell.value || '',
+          pendingActionType: 'update',
+          value: snapshot.displayValue,
+        };
+      }
+
+      function rowHasPendingHolidayLeaveChange(rowNumber, year) {
+        let hasChange = false;
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            hasChange ||
+            pendingEdit.row !== rowNumber ||
+            !isPendingEditInScheduleYear(pendingEdit, year)
+          ) {
+            return;
+          }
+
+          hasChange =
+            isAnnualLeaveRawCode(pendingEdit.rawCode) ||
+            isAnnualLeaveRawCode(pendingEdit.originalRawCode) ||
+            isPublicHolidayPendingEdit(pendingEdit);
+        });
+
+        return hasChange;
+      }
+
+      function calculateDraftHolidayLeaveSnapshot(rowNumber, currentValue) {
+        const year = getCurrentScheduleYear();
+        const throughMonth = getMonthNumberFromSheetName(state.currentSheetName);
+        if (!throughMonth) {
+          return null;
+        }
+
+        const currentSummary = parseHolidayLeaveDisplayValue(currentValue);
+        const annualCells = getDraftAnnualLeaveCellsForRow(rowNumber, year);
+        const publicHolidayCells = getDraftPublicHolidayCellsForRow(rowNumber, year);
+
+        let annualRemaining = null;
+        let publicHolidayRemaining = null;
+
+        if (annualCells) {
+          annualRemaining = Math.max(
+            state.maxAnnualLeaveCount - getAnnualLeaveUsedThroughMonth(annualCells, throughMonth),
+            0,
+          );
+        } else if (currentSummary && Number.isFinite(currentSummary.annualLeaveRemaining)) {
+          annualRemaining = currentSummary.annualLeaveRemaining;
+        }
+
+        if (publicHolidayCells) {
+          publicHolidayRemaining = Math.max(
+            state.maxPublicHolidayCount - getPublicHolidayUsedThroughMonth(publicHolidayCells, throughMonth),
+            0,
+          );
+        } else if (currentSummary && Number.isFinite(currentSummary.publicHolidayRemaining)) {
+          publicHolidayRemaining = currentSummary.publicHolidayRemaining;
+        }
+
+        if (annualRemaining === null || publicHolidayRemaining === null) {
+          return null;
+        }
+
+        return {
+          annualLeaveRemaining: annualRemaining,
+          publicHolidayRemaining,
+          displayValue: `${publicHolidayRemaining}/${annualRemaining}`,
+        };
+      }
+
+      function parseHolidayLeaveDisplayValue(value) {
+        const match = String(value || '').trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+        if (!match) {
+          return null;
+        }
+
+        return {
+          publicHolidayRemaining: Number(match[1]),
+          annualLeaveRemaining: Number(match[2]),
+        };
+      }
+
+      function getDraftAnnualLeaveCellsForRow(rowNumber, year) {
+        const cacheKey = getAnnualLeaveCacheKey(rowNumber, year);
+        const yearData = state.annualLeaveYearCache.get(cacheKey);
+        const hasPendingAnnualChange = hasPendingAnnualLeaveChange(rowNumber, year);
+        if (!hasPendingAnnualChange || !yearData) {
+          return null;
+        }
+
+        const candidatesByKey = new Map();
+        ((yearData && yearData.cells) || []).forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            pendingEdit.row !== rowNumber ||
+            !isPendingEditInScheduleYear(pendingEdit, year) ||
+            !(
+              isAnnualLeaveRawCode(pendingEdit.rawCode) ||
+              isAnnualLeaveRawCode(pendingEdit.originalRawCode)
+            )
+          ) {
+            return;
+          }
+
+          candidatesByKey.set(
+            getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+            normalizePendingAnnualLeaveCellInfo(pendingEdit, year),
+          );
+        });
+
+        return Array.from(candidatesByKey.values())
+          .map((cellInfo) => ({
+            ...cellInfo,
+            rawCode: getEffectiveRawCodeForCell(cellInfo),
+          }))
+          .filter((cellInfo) => isAnnualLeaveRawCode(cellInfo.rawCode));
+      }
+
+      function getDraftPublicHolidayCellsForRow(rowNumber, year) {
+        const cacheKey = getPublicHolidayCacheKey(rowNumber, year);
+        const yearData = state.publicHolidayYearCache.get(cacheKey);
+        const hasPendingPublicHolidayChange = hasPendingPublicHolidayEdit(rowNumber, year);
+        if (!hasPendingPublicHolidayChange || !yearData) {
+          return null;
+        }
+
+        const candidatesByKey = new Map();
+        ((yearData && yearData.cells) || []).forEach((cellInfo) => {
+          candidatesByKey.set(cellInfo.key, cellInfo);
+        });
+
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            pendingEdit.row !== rowNumber ||
+            !isPendingEditInScheduleYear(pendingEdit, year) ||
+            !isPublicHolidayPendingEdit(pendingEdit)
+          ) {
+            return;
+          }
+
+          candidatesByKey.set(
+            getPendingEditKey(pendingEdit.sheetName, pendingEdit.row, pendingEdit.column),
+            normalizePendingPublicHolidayCellInfo(pendingEdit, year),
+          );
+        });
+
+        return Array.from(candidatesByKey.values())
+          .map((cellInfo) => ({
+            ...cellInfo,
+            rawCode: getEffectiveRawCodeForCell(cellInfo),
+            shiftMeta: getEffectiveShiftMetaForCell(cellInfo),
+          }))
+          .filter((cellInfo) => isPublicHolidayCandidateCellInfo(cellInfo));
+      }
+
+      function hasPendingAnnualLeaveChange(rowNumber, year) {
+        let hasChange = false;
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            hasChange ||
+            pendingEdit.row !== rowNumber ||
+            !isPendingEditInScheduleYear(pendingEdit, year)
+          ) {
+            return;
+          }
+
+          hasChange =
+            isAnnualLeaveRawCode(pendingEdit.rawCode) ||
+            isAnnualLeaveRawCode(pendingEdit.originalRawCode);
+        });
+
+        return hasChange;
+      }
+
+      function hasPendingPublicHolidayEdit(rowNumber, year) {
+        let hasChange = false;
+        state.pendingEdits.forEach((pendingEdit) => {
+          if (
+            hasChange ||
+            pendingEdit.row !== rowNumber ||
+            !isPendingEditInScheduleYear(pendingEdit, year)
+          ) {
+            return;
+          }
+
+          hasChange = isPublicHolidayPendingEdit(pendingEdit);
+        });
+
+        return hasChange;
+      }
+
+      function getAnnualLeaveUsedThroughMonth(cells, throughMonth) {
+        return cells.reduce((used, cellInfo) => {
+          if (!cellInfo.month || cellInfo.month > throughMonth) {
+            return used;
+          }
+
+          return Math.max(used, getAnnualLeaveOrdinal(cellInfo.rawCode));
+        }, 0);
+      }
+
+      function getPublicHolidayUsedThroughMonth(cells, throughMonth) {
+        return cells.reduce((used, cellInfo) => {
+          if (!cellInfo.month || cellInfo.month > throughMonth) {
+            return used;
+          }
+
+          return Math.max(used, getPublicHolidayOrdinal(cellInfo.rawCode));
+        }, 0);
+      }
+
+      function getAnnualLeaveOrdinal(rawCode) {
+        const match = String(rawCode || '').trim().match(/^AL([1-6])?$/i);
+        if (!match) {
+          return 0;
+        }
+
+        return match[1] ? Number(match[1]) : 1;
+      }
+
+      function getPublicHolidayOrdinal(rawCode) {
+        const match = String(rawCode || '').trim().match(/^Off([1-9]|1[0-3])$/i);
+        return match ? Number(match[1]) : 0;
+      }
+
+      function isPendingEditInScheduleYear(pendingEdit, year) {
+        return Number(pendingEdit.year) === Number(year) || isSameScheduleYear(pendingEdit.sheetName, year);
+      }
+
+      function withPendingEdit(cell) {
+        const key = getPendingEditKey(state.currentSheetName, cell.row, cell.column);
+        const pendingEdit = state.pendingEdits.get(key);
+        const originalValue = cell.value || '';
+
+        if (!pendingEdit) {
+          return {
+            ...cell,
+            editKey: key,
+            hasPendingEdit: false,
+            originalValue,
+            originalShiftMeta: cell.shiftMeta || null,
+            pendingActionType: '',
+          };
+        }
+
+        const pendingActionType = pendingEdit.actionType ||
+          getPendingActionType_(pendingEdit.originalRawCode, pendingEdit.rawCode);
+        const shiftMeta = pendingEdit.shiftMeta || resolveShiftMetaForRawCode(
+          pendingEdit.rawCode,
+          pendingEdit.roleGroup || (cell.shiftMeta && cell.shiftMeta.roleGroup),
+        );
+
+        return {
+          ...cell,
+          editKey: key,
+          hasPendingEdit: true,
+          originalValue: pendingEdit.originalRawCode,
+          originalShiftMeta: cell.shiftMeta || null,
+          pendingActionType,
+          shiftMeta,
+          value: pendingEdit.rawCode,
+        };
+      }
+
+      function getPendingEditKey(sheetName, row, column) {
+        return `${sheetName}:${row}:${column}`;
       }
 
       function renderMonthOptions() {
@@ -1025,8 +4601,19 @@
         if (state.editMode && isEditableCell(cell, rowClass)) {
           classes.push('editable-cell');
 
+          if (isCellInSelectionRange(cell)) {
+            classes.push('is-range-selected');
+          }
+
           if (isSelectedCell(cell)) {
             classes.push('is-selected');
+          }
+        }
+
+        if (cell.hasPendingEdit) {
+          classes.push('pending-cell');
+          if (cell.pendingActionType) {
+            classes.push(`pending-${cell.pendingActionType}`);
           }
         }
 
@@ -1035,8 +4622,9 @@
 
       function applyCellStyle(td, cell, rowClass) {
         const isShift = isShiftValueCell(cell, rowClass);
-        const background = normalizeSheetBackground(cell.background);
-        const textColor = resolveCellTextColor(cell, background);
+        const displayColors = getCellDisplayColors(cell, rowClass);
+        const background = displayColors.background;
+        const textColor = displayColors.ink;
 
         td.style.setProperty('background-color', background, 'important');
         td.style.setProperty('color', textColor, 'important');
@@ -1054,14 +4642,32 @@
         }
 
         const badge = document.createElement('span');
-        const badgeBackground = normalizeSheetBackground(cell.background);
+        const displayColors = getCellDisplayColors(cell, rowClass);
+        const badgeBackground = displayColors.background;
         badge.className = 'shift-badge';
         badge.textContent = cell.value;
         badge.style.backgroundColor = badgeBackground;
-        const badgeTextColor = resolveCellTextColor(cell, badgeBackground);
+        const badgeTextColor = displayColors.ink;
         badge.style.setProperty('color', badgeTextColor, 'important');
         badge.style.setProperty('--badge-text', badgeTextColor);
         td.appendChild(badge);
+      }
+
+      function getCellDisplayColors(cell, rowClass) {
+        if (
+          cell &&
+          cell.hasPendingEdit &&
+          cell.value &&
+          isShiftValueCell(cell, rowClass)
+        ) {
+          return getCatalogColorScheme(cell.shiftMeta || normalizeShiftMeta(null, cell.value, ''));
+        }
+
+        const background = normalizeSheetBackground(cell.background);
+        return {
+          background,
+          ink: resolveCellTextColor(cell, background),
+        };
       }
 
       function bindMonthCell(td, cell, rowClass) {
@@ -1087,33 +4693,435 @@
           return;
         }
 
+        td.dataset.editRow = String(cell.row);
+        td.dataset.editColumn = String(cell.column);
         td.setAttribute('role', 'button');
         td.setAttribute('tabindex', '0');
         td.setAttribute('aria-label', `เลือก ${cell.a1}`);
-        td.addEventListener('click', () => selectEditableCell(td, cell));
+        td.addEventListener('mousedown', (event) => {
+          if (event.button !== 0) {
+            return;
+          }
+
+          event.preventDefault();
+          state.isDraggingSelection = true;
+          selectEditableCell(td, cell, { extend: event.shiftKey });
+          updateDragAutoScroll(event);
+        });
+        td.addEventListener('mouseenter', () => {
+          if (state.isDraggingSelection) {
+            selectEditableCell(td, cell, { extend: true });
+            ensureCellVisibleInTableWrap(td);
+          }
+        });
+        td.addEventListener('click', (event) => selectEditableCell(td, cell, { extend: event.shiftKey }));
         td.addEventListener('keydown', (event) => {
+          if (handleScheduleKeyboardShortcut(event)) {
+            return;
+          }
+
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            selectEditableCell(td, cell);
+            selectEditableCell(td, cell, { extend: event.shiftKey });
           }
         });
       }
 
-      function selectEditableCell(td, cell) {
-        const selectedElement = elements.worksheetTable.querySelector('.editable-cell.is-selected');
-        if (selectedElement && selectedElement !== td) {
-          selectedElement.classList.remove('is-selected');
-        }
+      function selectEditableCell(td, cell, options = {}) {
+        const selectedCellInfo = createSelectedCellInfo(cell);
+        const anchor = options.extend && state.selectionAnchor
+          ? state.selectionAnchor
+          : selectedCellInfo;
+        state.selectionAnchor = anchor;
+        state.selectedCell = selectedCellInfo;
+        state.selectedRange = createSelectionRange(anchor, selectedCellInfo);
+        updateSelectionClasses();
+        ensureCellVisibleInTableWrap(td);
+        clearEditWarning();
+        updateEditActionBar();
+      }
 
-        td.classList.add('is-selected');
-        state.selectedCell = {
+      function createSelectedCellInfo(cell) {
+        const shiftMeta = getCellShiftMeta(cell);
+        return {
           a1: cell.a1,
+          background: cell.background || '',
           column: cell.column,
+          dateLabel: getDateLabel(cell.column),
+          employeeLabel: getEmployeeLabel(cell.row),
+          fontColor: cell.fontColor || '',
+          hasPendingEdit: cell.hasPendingEdit,
+          key: cell.editKey,
+          originalRawCode: cell.originalValue || '',
+          originalShiftMeta: cell.originalShiftMeta || shiftMeta,
+          pendingActionType: cell.pendingActionType || '',
           rawCode: cell.value || '',
+          roleGroup: shiftMeta && shiftMeta.roleGroup ? shiftMeta.roleGroup : '',
           row: cell.row,
           sheetName: state.currentSheetName,
+          shiftMeta,
         };
-        updateEditActionBar();
+      }
+
+      function createSelectionRange(anchor, focus) {
+        return {
+          startRow: Math.min(anchor.row, focus.row),
+          endRow: Math.max(anchor.row, focus.row),
+          startColumn: Math.min(anchor.column, focus.column),
+          endColumn: Math.max(anchor.column, focus.column),
+        };
+      }
+
+      function updateSelectionClasses() {
+        if (!elements.worksheetTable) {
+          return;
+        }
+
+        const editableCells = elements.worksheetTable.querySelectorAll('.editable-cell');
+        editableCells.forEach((element) => {
+          const row = Number(element.dataset.editRow);
+          const column = Number(element.dataset.editColumn);
+          const isActive = Boolean(
+            state.selectedCell &&
+            state.selectedCell.row === row &&
+            state.selectedCell.column === column
+          );
+          const inRange = Boolean(
+            state.selectedRange &&
+            row >= state.selectedRange.startRow &&
+            row <= state.selectedRange.endRow &&
+            column >= state.selectedRange.startColumn &&
+            column <= state.selectedRange.endColumn
+          );
+
+          element.classList.toggle('is-selected', isActive);
+          element.classList.toggle('is-range-selected', inRange && !isActive);
+        });
+      }
+
+      function getSelectedRangeCellCount() {
+        return getSelectedEditableCellInfos().length;
+      }
+
+      function getSelectedEditableCellInfos() {
+        if (!state.selectedCell || !state.currentData || !state.selectedRange) {
+          return state.selectedCell ? [state.selectedCell] : [];
+        }
+
+        const selectedCells = [];
+        state.currentData.rows.forEach((row) => {
+          const rowClass = getRowClass(row);
+          row.cells.forEach((cell) => {
+            if (
+              !isEditableCell(cell, rowClass) ||
+              cell.row < state.selectedRange.startRow ||
+              cell.row > state.selectedRange.endRow ||
+              cell.column < state.selectedRange.startColumn ||
+              cell.column > state.selectedRange.endColumn
+            ) {
+              return;
+            }
+
+            selectedCells.push(createSelectedCellInfo(withPendingEdit(cell)));
+          });
+        });
+
+        return selectedCells.sort((left, right) => left.row - right.row || left.column - right.column);
+      }
+
+      function handleScheduleKeyboardShortcut(event) {
+        if (
+          !state.editMode ||
+          !state.selectedCell ||
+          !elements.changeReviewModal.hidden ||
+          !elements.monthModal.hidden ||
+          isKeyboardEventFromTextEntry(event)
+        ) {
+          return false;
+        }
+
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          moveSelectedCellWithArrow(event.key, {
+            extend: event.shiftKey,
+            jump: event.ctrlKey || event.metaKey,
+          });
+          return true;
+        }
+
+        if (event.key === 'Delete' || event.key === 'Backspace') {
+          event.preventDefault();
+          event.stopPropagation();
+          clearSelectedCellRawCode();
+          return true;
+        }
+
+        return false;
+      }
+
+      function isKeyboardEventFromTextEntry(event) {
+        const target = event.target;
+        if (!target || target === document.body || target === window) {
+          return false;
+        }
+
+        if (target.classList && target.classList.contains('editable-cell')) {
+          return false;
+        }
+
+        return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+      }
+
+      function moveSelectedCellWithArrow(key, options = {}) {
+        const targetCell = findNextEditableCellElement(key, options);
+        if (!targetCell) {
+          return;
+        }
+
+        const cell = getEditableCellDataFromElement(targetCell);
+        if (!cell) {
+          return;
+        }
+
+        targetCell.focus({ preventScroll: true });
+        ensureCellVisibleInTableWrap(targetCell);
+        selectEditableCell(targetCell, cell, { extend: options.extend });
+      }
+
+      function findNextEditableCellElement(key, options = {}) {
+        const current = state.selectedCell;
+        if (!current) {
+          return null;
+        }
+
+        const cells = Array.from(elements.worksheetTable.querySelectorAll('.editable-cell'))
+          .map((element) => ({
+            element,
+            row: Number(element.dataset.editRow),
+            column: Number(element.dataset.editColumn),
+          }))
+          .filter((item) => Number.isInteger(item.row) && Number.isInteger(item.column));
+
+        if (key === 'ArrowLeft' || key === 'ArrowRight') {
+          const direction = key === 'ArrowLeft' ? -1 : 1;
+          const candidates = cells
+            .filter((item) => item.row === current.row && direction * (item.column - current.column) > 0)
+            .sort((left, right) => direction * (left.column - right.column));
+          return candidates.length
+            ? candidates[options.jump ? candidates.length - 1 : 0].element
+            : null;
+        }
+
+        const direction = key === 'ArrowUp' ? -1 : 1;
+        const candidates = cells
+          .filter((item) => item.column === current.column && direction * (item.row - current.row) > 0)
+          .sort((left, right) => direction * (left.row - right.row));
+        return candidates.length
+          ? candidates[options.jump ? candidates.length - 1 : 0].element
+          : null;
+      }
+
+      function getEditableCellDataFromElement(element) {
+        const rowNumber = Number(element.dataset.editRow);
+        const column = Number(element.dataset.editColumn);
+        const row = getWorksheetRow(rowNumber);
+        if (!row) {
+          return null;
+        }
+
+        const cell = row.cells.find((item) => item.column === column);
+        return cell ? withPendingEdit(cell) : null;
+      }
+
+      function focusSelectedEditableCell() {
+        if (!state.editMode || !state.selectedCell) {
+          return;
+        }
+
+        const selectedElement = elements.worksheetTable.querySelector(
+          `.editable-cell[data-edit-row="${state.selectedCell.row}"][data-edit-column="${state.selectedCell.column}"]`,
+        );
+        if (selectedElement) {
+          selectedElement.focus({ preventScroll: true });
+          ensureCellVisibleInTableWrap(selectedElement);
+        }
+      }
+
+      function handleSelectionDragMove(event) {
+        if (!state.isDraggingSelection) {
+          return;
+        }
+
+        updateDragAutoScroll(event);
+        selectEditableCellFromPoint(event.clientX, event.clientY);
+      }
+
+      function updateDragAutoScroll(event) {
+        const tableWrap = elements.tableWrap;
+        if (!tableWrap) {
+          return;
+        }
+
+        const rect = tableWrap.getBoundingClientRect();
+        const edgeSize = 56;
+        const maxSpeed = 26;
+        const withinHorizontalZone = event.clientX >= rect.left - edgeSize && event.clientX <= rect.right + edgeSize;
+        const withinVerticalZone = event.clientY >= rect.top - edgeSize && event.clientY <= rect.bottom + edgeSize;
+
+        state.dragPointerX = event.clientX;
+        state.dragPointerY = event.clientY;
+        state.dragAutoScrollX = withinVerticalZone
+          ? getAutoScrollVelocity(event.clientX, rect.left, rect.right, edgeSize, maxSpeed)
+          : 0;
+        state.dragAutoScrollY = withinHorizontalZone
+          ? getAutoScrollVelocity(event.clientY, rect.top, rect.bottom, edgeSize, maxSpeed)
+          : 0;
+
+        if (state.dragAutoScrollX || state.dragAutoScrollY) {
+          startDragAutoScroll();
+        } else {
+          stopDragAutoScroll();
+        }
+      }
+
+      function getAutoScrollVelocity(pointer, min, max, edgeSize, maxSpeed) {
+        if (pointer < min + edgeSize) {
+          return -Math.ceil(((min + edgeSize - pointer) / edgeSize) * maxSpeed);
+        }
+
+        if (pointer > max - edgeSize) {
+          return Math.ceil(((pointer - (max - edgeSize)) / edgeSize) * maxSpeed);
+        }
+
+        return 0;
+      }
+
+      function startDragAutoScroll() {
+        if (state.dragAutoScrollFrame) {
+          return;
+        }
+
+        state.dragAutoScrollFrame = window.requestAnimationFrame(runDragAutoScroll);
+      }
+
+      function stopDragAutoScroll() {
+        if (state.dragAutoScrollFrame) {
+          window.cancelAnimationFrame(state.dragAutoScrollFrame);
+        }
+
+        state.dragAutoScrollFrame = 0;
+        state.dragAutoScrollX = 0;
+        state.dragAutoScrollY = 0;
+      }
+
+      function runDragAutoScroll() {
+        state.dragAutoScrollFrame = 0;
+        if (!state.isDraggingSelection || (!state.dragAutoScrollX && !state.dragAutoScrollY)) {
+          return;
+        }
+
+        elements.tableWrap.scrollBy({
+          left: state.dragAutoScrollX,
+          top: state.dragAutoScrollY,
+        });
+        selectEditableCellFromPoint(state.dragPointerX, state.dragPointerY);
+        state.dragAutoScrollFrame = window.requestAnimationFrame(runDragAutoScroll);
+      }
+
+      function selectEditableCellFromPoint(clientX, clientY) {
+        const element = getEditableCellElementFromPoint(clientX, clientY);
+        if (!element) {
+          return;
+        }
+
+        const cell = getEditableCellDataFromElement(element);
+        if (cell) {
+          selectEditableCell(element, cell, { extend: true });
+        }
+      }
+
+      function getEditableCellElementFromPoint(clientX, clientY) {
+        if (!elements.tableWrap || !elements.worksheetTable) {
+          return null;
+        }
+
+        const rect = elements.tableWrap.getBoundingClientRect();
+        const clampedX = Math.min(Math.max(clientX, rect.left + 2), rect.right - 2);
+        const clampedY = Math.min(Math.max(clientY, rect.top + 2), rect.bottom - 2);
+        const element = document.elementFromPoint(clampedX, clampedY);
+        const editableCell = element && element.closest ? element.closest('.editable-cell') : null;
+        return editableCell && elements.worksheetTable.contains(editableCell) ? editableCell : null;
+      }
+
+      function ensureCellVisibleInTableWrap(cellElement) {
+        const tableWrap = elements.tableWrap;
+        if (!tableWrap || !cellElement) {
+          return;
+        }
+
+        const wrapRect = tableWrap.getBoundingClientRect();
+        const cellRect = cellElement.getBoundingClientRect();
+        const gutter = 24;
+        let deltaX = 0;
+        let deltaY = 0;
+
+        if (cellRect.left < wrapRect.left + gutter) {
+          deltaX = cellRect.left - wrapRect.left - gutter;
+        } else if (cellRect.right > wrapRect.right - gutter) {
+          deltaX = cellRect.right - wrapRect.right + gutter;
+        }
+
+        if (cellRect.top < wrapRect.top + gutter) {
+          deltaY = cellRect.top - wrapRect.top - gutter;
+        } else if (cellRect.bottom > wrapRect.bottom - gutter) {
+          deltaY = cellRect.bottom - wrapRect.bottom + gutter;
+        }
+
+        if (deltaX || deltaY) {
+          tableWrap.scrollBy({
+            left: deltaX,
+            top: deltaY,
+          });
+        }
+      }
+
+      function getCellShiftMeta(cell) {
+        const shiftMeta = cell && cell.shiftMeta ? cell.shiftMeta : null;
+        const rawCode = cell ? cell.value || '' : '';
+        if (isPublicHolidaySavedRawCode(rawCode) && isPublicHolidayBackground(cell && cell.background)) {
+          return createPublicHolidayShiftMeta(rawCode, shiftMeta);
+        }
+
+        return shiftMeta;
+      }
+
+      function getEmployeeLabel(rowNumber) {
+        const row = getWorksheetRow(rowNumber);
+        if (!row) {
+          return '';
+        }
+
+        const sequence = getCellValue(row, 2);
+        const fullName = getCellValue(row, 3);
+        return [sequence, fullName].filter(Boolean).join(' ');
+      }
+
+      function getDateLabel(column) {
+        const calendarRow = getWorksheetRow(4);
+        const weekdayRow = getWorksheetRow(5);
+        const day = calendarRow ? getCellValue(calendarRow, column) : '';
+        const weekday = weekdayRow ? getCellValue(weekdayRow, column) : '';
+
+        return [day, weekday].filter(Boolean).join(' ');
+      }
+
+      function getWorksheetRow(rowNumber) {
+        if (!state.currentData || !state.currentData.rows) {
+          return null;
+        }
+
+        return state.currentData.rows.find((row) => row.rowNumber === rowNumber) || null;
       }
 
       function getMonthSubtitle(data) {
@@ -1125,10 +5133,15 @@
       function updateScheduleColumnBounds(data) {
         const calendarRow = (data.rows || []).find((row) => row.rowNumber === 4);
         let lastDayColumn = state.reservedDayEndColumn;
+        let holidayLeaveColumn = state.defaultHolidayLeaveColumn;
 
         if (calendarRow) {
           calendarRow.cells.forEach((cell) => {
             const dayNumber = Number(cell.value);
+            if (String(cell.value || '').indexOf('นักขัตฤกษ์ / ลาพักร้อน') !== -1) {
+              holidayLeaveColumn = cell.column;
+            }
+
             if (
               cell.column >= state.scheduleStartColumn &&
               cell.column <= state.reservedDayEndColumn &&
@@ -1144,6 +5157,7 @@
         state.scheduleStartColumn = 8;
         state.scheduleEndColumn = Math.max(lastDayColumn, state.reservedDayEndColumn);
         state.noteStartColumn = Math.max(state.defaultNoteStartColumn, state.scheduleEndColumn + 1);
+        state.holidayLeaveColumn = holidayLeaveColumn;
       }
 
       function getCellValue(row, column) {
@@ -1173,7 +5187,21 @@
       }
 
       function isSelectedCell(cell) {
-        return Boolean(state.selectedCell && state.selectedCell.a1 === cell.a1);
+        return Boolean(
+          state.selectedCell &&
+          state.selectedCell.row === cell.row &&
+          state.selectedCell.column === cell.column
+        );
+      }
+
+      function isCellInSelectionRange(cell) {
+        return Boolean(
+          state.selectedRange &&
+          cell.row >= state.selectedRange.startRow &&
+          cell.row <= state.selectedRange.endRow &&
+          cell.column >= state.selectedRange.startColumn &&
+          cell.column <= state.selectedRange.endColumn
+        );
       }
 
       function isSpacerColumn(cell) {

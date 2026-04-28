@@ -723,17 +723,21 @@ function getScheduleCellColorScheme_(shiftMeta) {
     };
   }
 
+  const rawCode = String((shiftMeta && shiftMeta.rawCode) || '').trim();
+  const upperCode = rawCode.toUpperCase();
+  const displayMode = shiftMeta && shiftMeta.displayMode ? shiftMeta.displayMode : '';
+  const segmentType = shiftMeta && shiftMeta.segmentType ? shiftMeta.segmentType : '';
+
+  if (upperCode === 'OFFICE' || upperCode === 'O-1' || segmentType === 'office') {
+    return { background: '#f8fafc', ink: '#111827' };
+  }
+
   if (shiftMeta && isHexColor_(shiftMeta.color)) {
     return {
       background: shiftMeta.color,
       ink: readableTextColorForHex_(shiftMeta.color),
     };
   }
-
-  const rawCode = String((shiftMeta && shiftMeta.rawCode) || '').trim();
-  const upperCode = rawCode.toUpperCase();
-  const displayMode = shiftMeta && shiftMeta.displayMode ? shiftMeta.displayMode : '';
-  const segmentType = shiftMeta && shiftMeta.segmentType ? shiftMeta.segmentType : '';
 
   if (/^OFF\d*$/i.test(rawCode)) {
     return { background: '#00a9e0', ink: '#ffffff' };
@@ -753,10 +757,6 @@ function getScheduleCellColorScheme_(shiftMeta) {
 
   if (upperCode === 'PRODUCT TRAINING') {
     return { background: '#e77bea', ink: '#111827' };
-  }
-
-  if (upperCode === 'OFFICE' || upperCode === 'O-1' || segmentType === 'office') {
-    return { background: '#fff200', ink: '#101820' };
   }
 
   if (/^1\/3H$/i.test(rawCode)) {
@@ -2294,8 +2294,26 @@ function getShiftDictionaryAdapter_(spreadsheet) {
       sheetName: dictionarySheet.getName(),
       message: 'Shift Dictionary loaded from worksheet.',
     },
-    items: sheetItems,
+    items: mergeFallbackShiftDictionaryItems_(sheetItems),
   };
+}
+
+function mergeFallbackShiftDictionaryItems_(sheetItems) {
+  const mergedItems = sheetItems.slice();
+  const seenKeys = new Set(sheetItems.map((item) => getShiftDictionaryItemKey_(item)));
+
+  getFallbackShiftDictionaryItems_().forEach((fallbackItem) => {
+    const key = getShiftDictionaryItemKey_(fallbackItem);
+    if (!seenKeys.has(key)) {
+      mergedItems.push(fallbackItem);
+    }
+  });
+
+  return mergedItems;
+}
+
+function getShiftDictionaryItemKey_(item) {
+  return `${String((item && item.roleGroup) || 'any').trim()}:${String((item && item.rawCode) || '').trim()}`;
 }
 
 function getShiftDictionarySheet_(spreadsheet) {
@@ -2403,7 +2421,7 @@ function getFallbackShiftDictionaryItems_() {
     createShiftDictionaryItem_({ rawCode: '1', roleGroup: 'any', displayLabel: '1', displayMode: 'single', segmentType: 'regular', start: '08:00', end: '17:00', description: 'ทำงาน 08.00-17.00' }),
     createShiftDictionaryItem_({ rawCode: '2', roleGroup: 'any', displayLabel: '2', displayMode: 'single', segmentType: 'regular', start: '11:00', end: '20:00', description: 'ทำงาน 11.00-20.00' }),
     createShiftDictionaryItem_({ rawCode: '1/3H', roleGroup: 'any', displayLabel: '1/3H', displayMode: 'addon', segmentType: 'ot', start: '17:00', end: '20:00', impliedBaseCode: '1', description: 'OT 17.00-20.00' }),
-    createShiftDictionaryItem_({ rawCode: 'O-1', roleGroup: 'senior_pharmacist', displayLabel: 'O-1', displayMode: 'base', segmentType: 'office', locationCode: 'office', start: '08:00', breakStart: '12:00', breakEnd: '13:00', end: '17:00', expectedWorkMinutes: 480, description: 'ทำงานสำนักงาน 08.00-17.00 พัก 12.00-13.00' }),
+    createShiftDictionaryItem_({ rawCode: 'O-1', roleGroup: 'senior_pharmacist', displayLabel: 'O-1', displayMode: 'base', segmentType: 'office', locationCode: 'office', start: '08:00', breakStart: '12:00', breakEnd: '13:00', end: '17:00', expectedWorkMinutes: 480, color: '#f8fafc', description: 'ทำงานสำนักงาน 08.00-17.00 พัก 12.00-13.00' }),
     createShiftDictionaryItem_({ rawCode: '4H-1', roleGroup: 'senior_pharmacist', displayLabel: '4H-1', displayMode: 'composite', segmentType: 'branch_ot', locationCode: '001', start: '17:00', end: '21:00', impliedBaseCode: 'O-1', description: 'สำนักงาน + สาขา 001 17.00-21.00' }),
     createShiftDictionaryItem_({ rawCode: '3H-4', roleGroup: 'senior_pharmacist', displayLabel: '3H-4', displayMode: 'composite', segmentType: 'branch_ot', locationCode: '004', start: '17:00', end: '20:00', impliedBaseCode: 'O-1', description: 'สำนักงาน + สาขา 004 17.00-20.00' }),
     createShiftDictionaryItem_({ rawCode: '11H-3', roleGroup: 'senior_pharmacist', displayLabel: '11H-3', displayMode: 'single', segmentType: 'branch', locationCode: '003', description: 'สาขา 003 รวม 11 ชั่วโมง' }),
@@ -2414,6 +2432,8 @@ function getFallbackShiftDictionaryItems_() {
     createShiftDictionaryItem_({ rawCode: 'AL5', roleGroup: 'any', displayLabel: 'AL5', displayMode: 'leave', segmentType: 'leave', description: 'ลาพักร้อน' }),
     createShiftDictionaryItem_({ rawCode: 'AL6', roleGroup: 'any', displayLabel: 'AL6', displayMode: 'leave', segmentType: 'leave', description: 'ลาพักร้อน' }),
     createShiftDictionaryItem_({ rawCode: 'BL', roleGroup: 'any', displayLabel: 'BL', displayMode: 'leave', segmentType: 'leave', description: 'ลา' }),
+    createShiftDictionaryItem_({ rawCode: 'ML', roleGroup: 'any', displayLabel: 'ML', displayMode: 'leave', segmentType: 'leave', description: 'Maternal leave' }),
+    createShiftDictionaryItem_({ rawCode: 'SL', roleGroup: 'any', displayLabel: 'SL', displayMode: 'leave', segmentType: 'leave', description: 'Sick leave' }),
     createShiftDictionaryItem_({ rawCode: 'RxM', roleGroup: 'any', displayLabel: 'RxM', displayMode: 'assignment', segmentType: 'meeting', description: 'งาน RxM' }),
     createShiftDictionaryItem_({ rawCode: 'Off1', roleGroup: 'any', displayLabel: 'Off1', displayMode: 'off', segmentType: 'off', description: 'วันหยุด' }),
     createShiftDictionaryItem_({ rawCode: 'Off2', roleGroup: 'any', displayLabel: 'Off2', displayMode: 'off', segmentType: 'off', description: 'วันหยุด' }),

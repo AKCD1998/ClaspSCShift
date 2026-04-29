@@ -29,6 +29,9 @@
         --schedule-day-width: 60px;
         --spacer-col-width: 22px;
         --note-col-width: 260px;
+        --page-x-scrollbar-height: 18px;
+        --toolbar-top: 18px;
+        --toolbar-right: 24px;
       }
 
       * {
@@ -39,6 +42,8 @@
       body {
         margin: 0;
         min-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       body {
@@ -47,6 +52,10 @@
         font-family: Arial, "Noto Sans Thai", sans-serif;
         font-size: 14px;
         letter-spacing: 0;
+      }
+
+      body.has-page-x-scrollbar {
+        padding-bottom: var(--page-x-scrollbar-height);
       }
 
       button {
@@ -76,6 +85,12 @@
         color: #ffffff;
       }
 
+      button.note-toggle-button.is-active {
+        background: #e7f2ed;
+        border-color: #9ccdb8;
+        color: #176448;
+      }
+
       button:disabled {
         cursor: default;
         opacity: 0.54;
@@ -84,9 +99,10 @@
       .app-shell {
         margin: 0 auto;
         max-width: none;
-        min-width: 100%;
+        min-width: 0;
+        overflow: visible;
         padding: 24px;
-        width: max-content;
+        width: 100%;
       }
 
       .app-header {
@@ -124,10 +140,19 @@
 
       .toolbar {
         align-items: center;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(212, 220, 227, 0.9);
+        border-radius: 8px;
+        box-shadow: 0 10px 28px rgba(35, 55, 48, 0.14);
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
         justify-content: flex-end;
+        padding: 6px;
+        position: fixed;
+        right: var(--toolbar-right);
+        top: var(--toolbar-top);
+        z-index: 70;
       }
 
       .roster-card {
@@ -136,8 +161,54 @@
         border-radius: 8px;
         box-shadow: var(--shadow);
         min-width: calc(100vw - 48px);
+        overflow: visible;
         padding: 14px;
-        width: var(--roster-width, calc(100vw - 48px));
+        width: 100%;
+      }
+
+      .note-card {
+        background: var(--panel);
+        border: 1px solid rgba(212, 220, 227, 0.9);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        margin-top: 16px;
+        min-width: calc(100vw - 48px);
+        overflow: visible;
+        padding: 14px;
+        width: 100%;
+      }
+
+      .note-card[hidden] {
+        display: none;
+      }
+
+      .note-card-header {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .note-card-header h2 {
+        font-size: 18px;
+        line-height: 1.3;
+        margin: 0;
+      }
+
+      .note-table-wrap {
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        max-width: 100%;
+        overflow: auto;
+      }
+
+      .note-table .sticky-col,
+      .note-table .calendar-row td,
+      .note-table .weekday-row td {
+        left: auto;
+        position: static;
+        top: auto;
+        z-index: auto;
       }
 
       .roster-meta {
@@ -174,26 +245,57 @@
       .table-wrap {
         border: 1px solid var(--line-strong);
         border-radius: 8px;
-        max-height: calc(100vh - 196px);
-        min-height: 420px;
+        display: block;
+        max-height: none;
+        max-width: 100%;
         overflow: auto;
         position: relative;
         width: 100%;
       }
 
-      .table-wrap::-webkit-scrollbar {
-        height: 12px;
-        width: 12px;
+      main#tableWrap.table-wrap {
+        max-height: none !important;
+        max-width: 100% !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+        width: 100% !important;
       }
 
-      .table-wrap::-webkit-scrollbar-thumb {
-        background: #bdc9d1;
-        border: 3px solid #f6f8f9;
+      .page-x-scrollbar {
+        background: rgba(247, 250, 249, 0.96);
+        border-top: 1px solid rgba(212, 220, 227, 0.95);
+        bottom: 0;
+        height: var(--page-x-scrollbar-height);
+        left: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        position: fixed;
+        right: 0;
+        scrollbar-color: #8da0ad #eef3f1;
+        scrollbar-width: thin;
+        z-index: 80;
+      }
+
+      .page-x-scrollbar[hidden] {
+        display: none;
+      }
+
+      .page-x-scrollbar::-webkit-scrollbar {
+        height: 14px;
+      }
+
+      .page-x-scrollbar::-webkit-scrollbar-thumb {
+        background: #8da0ad;
+        border: 3px solid #eef3f1;
         border-radius: 999px;
       }
 
-      .table-wrap::-webkit-scrollbar-track {
-        background: #f6f8f9;
+      .page-x-scrollbar::-webkit-scrollbar-track {
+        background: #eef3f1;
+      }
+
+      .page-x-scrollbar-spacer {
+        height: 1px;
       }
 
       table {
@@ -314,6 +416,26 @@
         box-shadow:
           inset 0 0 0 999px rgba(11, 127, 86, 0.16),
           inset 0 0 0 3px rgba(11, 127, 86, 0.72);
+      }
+
+      @keyframes clipboardPulse {
+        0%, 100% {
+          outline-color: rgba(20, 114, 89, 0.95);
+        }
+
+        50% {
+          outline-color: rgba(20, 114, 89, 0.12);
+        }
+      }
+
+      .is-edit-mode .editable-cell.is-clipboard-source {
+        animation: clipboardPulse 0.95s steps(2, end) infinite;
+        outline: 3px dashed rgba(20, 114, 89, 0.95);
+        outline-offset: -4px;
+      }
+
+      .is-edit-mode .editable-cell.is-clipboard-source.is-cut-source {
+        opacity: 0.72;
       }
 
       .pending-cell {
@@ -842,14 +964,21 @@
         }
 
         body.symbol-catalog-open .app-header,
+        body.symbol-catalog-open .document-preview-card,
+        body.symbol-catalog-open .note-card,
         body.symbol-catalog-open .roster-card {
           min-width: max(1040px, calc(100vw - var(--catalog-drawer-width) - 48px));
-          width: max(1040px, calc(100vw - var(--catalog-drawer-width) - 48px));
+          width: 100%;
         }
 
         body.symbol-catalog-open .table-wrap {
           width: 100%;
         }
+
+        body.symbol-catalog-open .toolbar {
+          right: calc(var(--catalog-drawer-width) + var(--toolbar-right));
+        }
+
       }
 
       .attendance-poc {
@@ -860,7 +989,153 @@
         margin-top: 16px;
         min-width: calc(100vw - 48px);
         padding: 14px;
-        width: var(--roster-width, calc(100vw - 48px));
+        width: 100%;
+      }
+
+      .document-preview-card {
+        background: var(--panel);
+        border: 1px solid rgba(212, 220, 227, 0.9);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        margin-top: 16px;
+        min-width: calc(100vw - 48px);
+        padding: 14px;
+        width: 100%;
+      }
+
+      .document-preview-header {
+        align-items: flex-start;
+        display: flex;
+        gap: 14px;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .document-preview-header h2 {
+        font-size: 20px;
+        line-height: 1.3;
+        margin: 0;
+      }
+
+      .document-preview-header p {
+        color: var(--muted);
+        line-height: 1.45;
+        margin: 4px 0 0;
+      }
+
+      .document-preview-controls {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .document-preview-link {
+        align-items: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        color: var(--ink);
+        display: inline-flex;
+        font-weight: 700;
+        min-height: 36px;
+        padding: 0 14px;
+        text-decoration: none;
+      }
+
+      .document-preview-link[hidden] {
+        display: none;
+      }
+
+      .document-preview-status {
+        color: var(--muted);
+        line-height: 1.45;
+        margin-top: 8px;
+      }
+
+      .document-preview-status.error {
+        color: var(--danger);
+      }
+
+      .document-preview-progress {
+        margin-top: 10px;
+      }
+
+      .document-preview-progress[hidden],
+      .document-preview-results[hidden] {
+        display: none;
+      }
+
+      .document-preview-progress-track {
+        background: #e5e7eb;
+        border-radius: 999px;
+        height: 10px;
+        overflow: hidden;
+      }
+
+      .document-preview-progress-bar {
+        background: var(--success);
+        height: 100%;
+        transition: width 180ms ease;
+        width: 0%;
+      }
+
+      .document-preview-progress-text {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+        margin-top: 6px;
+      }
+
+      .document-preview-results {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .document-preview-result-item {
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: space-between;
+        padding: 8px 10px;
+      }
+
+      .document-preview-result-item.is-error {
+        border-color: rgba(185, 28, 28, 0.45);
+      }
+
+      .document-preview-result-item strong {
+        font-size: 14px;
+      }
+
+      .document-preview-result-item span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .document-preview-frame-wrap {
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        height: min(78vh, 820px);
+        margin-top: 12px;
+        min-height: 520px;
+        overflow: hidden;
+      }
+
+      .document-preview-frame-wrap[hidden] {
+        display: none;
+      }
+
+      .document-preview-frame-wrap iframe {
+        background: #ffffff;
+        border: 0;
+        display: block;
+        height: 100%;
+        width: 100%;
       }
 
       .attendance-poc-header {
@@ -1113,8 +1388,9 @@
 
       @media (max-width: 720px) {
         .app-shell {
-          width: 100%;
           padding: 14px;
+          padding-top: 72px;
+          width: 100%;
         }
 
         .app-header,
@@ -1128,30 +1404,43 @@
         }
 
         .toolbar {
+          flex-wrap: nowrap;
           justify-content: flex-start;
+          left: 8px;
+          overflow-x: auto;
+          right: 8px;
+          top: 8px;
         }
 
         button {
           flex: 1 1 auto;
         }
 
-        .table-wrap {
-          max-height: calc(100vh - 246px);
-          min-height: 360px;
+        .toolbar button {
+          flex: 0 0 auto;
         }
 
-        .attendance-poc {
+        .attendance-poc,
+        .document-preview-card,
+        .note-card {
           min-width: 100%;
           width: 100%;
         }
 
+        .document-preview-header,
         .attendance-poc-header {
           flex-direction: column;
         }
 
+        .document-preview-controls,
         .attendance-poc-controls {
           justify-content: flex-start;
           width: 100%;
+        }
+
+        .document-preview-frame-wrap {
+          height: 68vh;
+          min-height: 420px;
         }
 
         .attendance-poc input[type="file"] {
@@ -1175,6 +1464,10 @@
           padding-bottom: 72vh;
         }
 
+        body.has-page-x-scrollbar.symbol-catalog-open {
+          padding-bottom: calc(72vh + var(--page-x-scrollbar-height));
+        }
+
         .symbol-option {
           grid-template-columns: 88px minmax(0, 1fr);
         }
@@ -1193,6 +1486,8 @@
           <button type="button" disabled>ตัวกรอง</button>
           <button id="monthButton" type="button">เลือกเดือน</button>
           <button class="edit-mode-button" id="editModeButton" type="button" aria-pressed="false">โหมดแก้ไข</button>
+          <button class="note-toggle-button" id="noteToggleButton" type="button" aria-pressed="false">แสดงหมายเหตุ</button>
+          <button id="digitalPreviewToolbarButton" type="button">สร้างเอกสาร</button>
           <button type="button" disabled>ส่งออก</button>
           <button class="primary" id="refreshButton" type="button">โหลดใหม่</button>
         </div>
@@ -1242,6 +1537,39 @@
         </div>
       </section>
 
+      <section class="note-card" id="noteCard" aria-label="ตารางหมายเหตุ" hidden>
+        <div class="note-card-header">
+          <h2>หมายเหตุ</h2>
+        </div>
+        <main class="note-table-wrap" id="noteTableWrap" aria-label="ตารางหมายเหตุ">
+          <table class="note-table" id="noteTable"></table>
+        </main>
+      </section>
+
+      <section class="document-preview-card" id="digitalPreviewCard" aria-label="ตัวอย่างเอกสาร DigitalPJK">
+        <div class="document-preview-header">
+          <div>
+            <h2>ตัวอย่างเอกสาร DigitalPJK</h2>
+            <p id="digitalPreviewSubtitle">PDF preview จาก backend DigitalPJK</p>
+          </div>
+          <div class="document-preview-controls">
+            <button class="primary" id="digitalPreviewButton" type="button">สร้างเอกสารทุกสาขา</button>
+            <a class="document-preview-link" id="digitalPreviewOpenLink" href="#" target="_blank" rel="noopener" hidden>เปิดใน Drive</a>
+          </div>
+        </div>
+        <div class="document-preview-status" id="digitalPreviewStatus">ยังไม่ได้สร้างเอกสารตัวอย่าง</div>
+        <div class="document-preview-progress" id="digitalPreviewProgress" hidden>
+          <div class="document-preview-progress-track" aria-hidden="true">
+            <div class="document-preview-progress-bar" id="digitalPreviewProgressBar"></div>
+          </div>
+          <div class="document-preview-progress-text" id="digitalPreviewProgressText">0%</div>
+        </div>
+        <div class="document-preview-results" id="digitalPreviewResults" hidden></div>
+        <div class="document-preview-frame-wrap" id="digitalPreviewFrameWrap" hidden>
+          <iframe id="digitalPreviewFrame" title="ตัวอย่าง PDF DigitalPJK"></iframe>
+        </div>
+      </section>
+
       <section class="attendance-poc" aria-label="ตรวจเทียบเวลาเข้าออก POC">
         <div class="attendance-poc-header">
           <div>
@@ -1287,6 +1615,10 @@
       </aside>
     </div>
 
+    <div class="page-x-scrollbar" id="pageXScrollbar" aria-label="เลื่อนหน้าซ้ายขวา" tabindex="0" hidden>
+      <div class="page-x-scrollbar-spacer" id="pageXScrollbarSpacer"></div>
+    </div>
+
     <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
       <div class="loader" aria-hidden="true"></div>
       <strong>กำลังอ่านตารางเวรจาก Google Sheets</strong>
@@ -1324,6 +1656,7 @@
     </div>
 
     <script>
+      const NOTE_SECTION_STORAGE_KEY = 'sc-shift-notes-hidden';
       const elements = {
         changeReviewCancel: document.getElementById('changeReviewCancel'),
         changeReviewClose: document.getElementById('changeReviewClose'),
@@ -1331,6 +1664,17 @@
         changeReviewModal: document.getElementById('changeReviewModal'),
         changeReviewSubmit: document.getElementById('changeReviewSubmit'),
         changeReviewSummary: document.getElementById('changeReviewSummary'),
+        digitalPreviewButton: document.getElementById('digitalPreviewButton'),
+        digitalPreviewCard: document.getElementById('digitalPreviewCard'),
+        digitalPreviewFrame: document.getElementById('digitalPreviewFrame'),
+        digitalPreviewFrameWrap: document.getElementById('digitalPreviewFrameWrap'),
+        digitalPreviewOpenLink: document.getElementById('digitalPreviewOpenLink'),
+        digitalPreviewProgress: document.getElementById('digitalPreviewProgress'),
+        digitalPreviewProgressBar: document.getElementById('digitalPreviewProgressBar'),
+        digitalPreviewProgressText: document.getElementById('digitalPreviewProgressText'),
+        digitalPreviewResults: document.getElementById('digitalPreviewResults'),
+        digitalPreviewStatus: document.getElementById('digitalPreviewStatus'),
+        digitalPreviewToolbarButton: document.getElementById('digitalPreviewToolbarButton'),
         editActionBar: document.getElementById('editActionBar'),
         editCancelButton: document.getElementById('editCancelButton'),
         editChangeButton: document.getElementById('editChangeButton'),
@@ -1350,6 +1694,12 @@
         monthGrid: document.getElementById('monthGrid'),
         monthModal: document.getElementById('monthModal'),
         monthModalClose: document.getElementById('monthModalClose'),
+        noteCard: document.getElementById('noteCard'),
+        noteTable: document.getElementById('noteTable'),
+        noteTableWrap: document.getElementById('noteTableWrap'),
+        noteToggleButton: document.getElementById('noteToggleButton'),
+        pageXScrollbar: document.getElementById('pageXScrollbar'),
+        pageXScrollbarSpacer: document.getElementById('pageXScrollbarSpacer'),
         pageSubtitle: document.getElementById('pageSubtitle'),
         pageTitle: document.getElementById('pageTitle'),
         pilotComparisonTable: document.getElementById('pilotComparisonTable'),
@@ -1387,6 +1737,8 @@
       const state = {
         currentData: null,
         currentSheetName: '',
+        digitalPreviewBatch: null,
+        digitalPreviewGenerating: false,
         editMode: false,
         annualLeaveYearCache: new Map(),
         defaultHolidayLeaveColumn: 40,
@@ -1396,6 +1748,11 @@
         pendingEdits: new Map(),
         pendingEditHistoryBefore: null,
         redoStack: [],
+        cellClipboard: null,
+        notesHidden: readNoteSectionHiddenPreference(),
+        noteSectionAvailable: false,
+        pageXScrollbarFrame: 0,
+        pageXScrollbarSyncing: false,
         selectedCell: null,
         selectedRange: null,
         selectionAnchor: null,
@@ -1426,6 +1783,8 @@
           closeChangeReviewModal();
         }
       });
+      elements.digitalPreviewButton.addEventListener('click', requestDigitalPjkPreview);
+      elements.digitalPreviewToolbarButton.addEventListener('click', requestDigitalPjkPreview);
       window.addEventListener('mousemove', handleSelectionDragMove);
       window.addEventListener('mouseup', () => {
         state.isDraggingSelection = false;
@@ -1452,7 +1811,10 @@
       });
       elements.pilotCsvInput.addEventListener('change', handlePilotCsvFileSelection);
       elements.pilotRunButton.addEventListener('click', runPilotAttendanceComparison);
+      elements.pageXScrollbar.addEventListener('scroll', handlePageXScrollbarScroll);
       elements.refreshButton.addEventListener('click', loadWorksheet);
+      elements.tableWrap.addEventListener('scroll', syncPageXScrollbarPosition);
+      elements.noteToggleButton.addEventListener('click', toggleNoteSection);
       elements.monthButton.addEventListener('click', openMonthModal);
       elements.monthModalClose.addEventListener('click', closeMonthModal);
       elements.monthModal.addEventListener('click', (event) => {
@@ -1460,17 +1822,26 @@
           closeMonthModal();
         }
       });
-      window.addEventListener('resize', () => syncRosterWidth(elements.worksheetTable));
+      window.addEventListener('resize', () => {
+        syncTableWrapScrollMode();
+        syncRosterWidth(elements.worksheetTable);
+        queuePageXScrollbarSync();
+      });
+      window.addEventListener('scroll', syncPageXScrollbarPosition);
       window.addEventListener('keydown', (event) => {
         if (handleScheduleKeyboardShortcut(event)) {
           return;
         }
 
         if (event.key === 'Escape') {
+          clearCellClipboard();
           closeMonthModal();
           closeChangeReviewModal();
         }
       });
+      syncTableWrapScrollMode();
+      updateNoteSectionToggleUi();
+      queuePageXScrollbarSync();
       loadWorksheet();
 
       function loadWorksheet(sheetName) {
@@ -1478,6 +1849,7 @@
         state.selectedCell = null;
         state.selectionAnchor = null;
         state.selectedRange = null;
+        state.cellClipboard = null;
         clearPendingEditHistory();
         clearEditWarning();
         updateEditModeUi();
@@ -1497,22 +1869,75 @@
         state.currentSheetName = data.sheetName;
         state.monthOptions = data.monthOptions || [];
         updateScheduleColumnBounds(data);
+        state.noteSectionAvailable = hasNoteSection(data);
         elements.pageTitle.textContent = 'ตารางเวร';
         elements.pageSubtitle.textContent = getMonthSubtitle(data);
         elements.sheetStatus.textContent = `${data.rowCount} แถว, ${data.columnCount} คอลัมน์`;
         elements.fetchStatus.textContent = `อ่านล่าสุด ${data.fetchedAt}`;
+        updateNoteSectionToggleUi();
         updateMonthButton();
         renderMonthOptions();
 
         const mergeState = buildMergeState(data.merges || []);
+        const table = buildWorksheetTable(data, mergeState, {
+          excludeNoteSection: true,
+          interactive: true,
+        });
+        const noteTable = buildWorksheetTable(data, mergeState, {
+          disableSticky: true,
+          noteSectionOnly: true,
+          tableClassName: 'note-table',
+        });
+        table.classList.toggle('is-edit-mode', state.editMode);
+        elements.worksheetTable.replaceWith(table);
+        table.id = 'worksheetTable';
+        elements.worksheetTable = table;
+        elements.noteTable.replaceWith(noteTable);
+        noteTable.id = 'noteTable';
+        elements.noteTable = noteTable;
+        syncNoteCardVisibility();
+        syncTableWrapScrollMode();
+        syncRosterWidth(table);
+        queuePageXScrollbarSync();
+        updateEditModeUi();
+        focusSelectedEditableCell();
+        setLoading(false);
+      }
+
+      function renderError(error) {
+        elements.sheetStatus.classList.add('error');
+        elements.sheetStatus.textContent = error && error.message ? error.message : String(error);
+        elements.fetchStatus.textContent = '';
+        setLoading(false);
+      }
+
+      function buildWorksheetTable(data, mergeState, options = {}) {
         const table = document.createElement('table');
+        if (options.tableClassName) {
+          table.className = options.tableClassName;
+        }
+
         table.appendChild(buildWorksheetColGroup(data.columnCount || 0));
         const body = document.createElement('tbody');
+        let activeSection = '';
 
         data.rows.forEach((row) => {
-          const tr = document.createElement('tr');
           const rowClass = getRowClass(row);
-          tr.className = rowClass;
+          if (rowClass === 'section-row') {
+            activeSection = getCellValue(row, 2);
+          }
+
+          const isNoteSectionRow = activeSection === 'หมายเหตุ';
+          if (options.excludeNoteSection && isNoteSectionRow) {
+            return;
+          }
+
+          if (options.noteSectionOnly && !isNoteSectionRow) {
+            return;
+          }
+
+          const tr = document.createElement('tr');
+          tr.className = isNoteSectionRow ? `${rowClass} note-section-row` : rowClass;
 
           row.cells.forEach((cell, columnIndex) => {
             const key = `${cell.row}:${cell.column}`;
@@ -1528,12 +1953,18 @@
               td.colSpan = getVisibleColSpan(span);
             }
 
-            td.className = getCellClass(displayCell, columnIndex, rowClass);
+            td.className = getCellClass(displayCell, columnIndex, rowClass, {
+              disableSticky: Boolean(options.disableSticky),
+            });
             td.title = `${displayCell.a1}${displayCell.value ? `: ${displayCell.value}` : ''}`;
             applyCellStyle(td, displayCell, rowClass);
             renderCellContent(td, displayCell, rowClass);
-            bindMonthCell(td, displayCell, rowClass);
-            bindEditableCell(td, displayCell, rowClass);
+
+            if (options.interactive) {
+              bindMonthCell(td, displayCell, rowClass);
+              bindEditableCell(td, displayCell, rowClass);
+            }
+
             tr.appendChild(td);
           });
 
@@ -1541,21 +1972,7 @@
         });
 
         table.appendChild(body);
-        table.classList.toggle('is-edit-mode', state.editMode);
-        elements.worksheetTable.replaceWith(table);
-        table.id = 'worksheetTable';
-        elements.worksheetTable = table;
-        syncRosterWidth(table);
-        updateEditModeUi();
-        focusSelectedEditableCell();
-        setLoading(false);
-      }
-
-      function renderError(error) {
-        elements.sheetStatus.classList.add('error');
-        elements.sheetStatus.textContent = error && error.message ? error.message : String(error);
-        elements.fetchStatus.textContent = '';
-        setLoading(false);
+        return table;
       }
 
       function buildWorksheetColGroup(columnCount) {
@@ -1618,7 +2035,225 @@
         elements.editModeButton.disabled = isLoading;
         elements.refreshButton.disabled = isLoading;
         elements.monthButton.disabled = isLoading;
+        elements.digitalPreviewToolbarButton.disabled = isLoading || state.digitalPreviewGenerating;
         elements.loadingOverlay.hidden = !isLoading;
+      }
+
+      function requestDigitalPjkPreview() {
+        if (state.digitalPreviewGenerating) {
+          return;
+        }
+
+        state.digitalPreviewGenerating = true;
+        state.digitalPreviewBatch = null;
+        setDigitalPreviewGeneratingUi(true);
+        elements.digitalPreviewStatus.classList.remove('error');
+        elements.digitalPreviewStatus.textContent = 'กำลังเตรียมรายการ ภจก.1 จากตารางเวร...';
+        elements.digitalPreviewOpenLink.hidden = true;
+        elements.digitalPreviewFrameWrap.hidden = true;
+        elements.digitalPreviewResults.hidden = true;
+        elements.digitalPreviewResults.replaceChildren();
+        setDigitalPreviewProgress(0, 1, 'เตรียมงาน 0%');
+        elements.digitalPreviewProgress.hidden = false;
+
+        google.script.run
+          .withSuccessHandler(handleDigitalPjkBatchPlan)
+          .withFailureHandler(handleDigitalPjkPreviewError)
+          .prepareDigitalPjkBatchPreview(state.currentSheetName);
+      }
+
+      function handleDigitalPjkBatchPlan(plan) {
+        if (!plan || !plan.ok) {
+          handleDigitalPjkPreviewError(new Error('DigitalPJK ไม่ได้ส่งรายการงานกลับมา'));
+          return;
+        }
+
+        const jobs = Array.isArray(plan.jobs) ? plan.jobs : [];
+        state.digitalPreviewBatch = {
+          completed: 0,
+          jobs,
+          plan,
+          results: [],
+        };
+
+        if (jobs.length === 0) {
+          state.digitalPreviewGenerating = false;
+          setDigitalPreviewGeneratingUi(false);
+          setDigitalPreviewProgress(1, 1, '100%');
+          elements.digitalPreviewStatus.classList.remove('error');
+          elements.digitalPreviewStatus.textContent = buildDigitalPjkNoJobStatus(plan);
+          renderDigitalPreviewResults([]);
+          elements.digitalPreviewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+
+        elements.digitalPreviewStatus.textContent =
+          `พบ ${plan.totalEntries || 0} รายการที่ต้องออก ภจก.1 ` +
+          `เตรียมสร้าง ${jobs.length} ไฟล์`;
+        processNextDigitalPjkJob();
+      }
+
+      function processNextDigitalPjkJob() {
+        const batch = state.digitalPreviewBatch;
+        if (!batch) {
+          return;
+        }
+
+        if (batch.completed >= batch.jobs.length) {
+          finishDigitalPjkBatch();
+          return;
+        }
+
+        const job = batch.jobs[batch.completed];
+        const nextIndex = batch.completed + 1;
+        setDigitalPreviewProgress(
+          batch.completed,
+          batch.jobs.length,
+          `กำลังสร้างไฟล์ ${nextIndex}/${batch.jobs.length} • สาขา ${job.branchCode}`,
+        );
+
+        google.script.run
+          .withSuccessHandler((result) => {
+            batch.results.push({ ok: true, result });
+            batch.completed += 1;
+            setDigitalPreviewProgress(
+              batch.completed,
+              batch.jobs.length,
+              `สร้างแล้ว ${batch.completed}/${batch.jobs.length}`,
+            );
+            renderDigitalPreviewResults(batch.results);
+            processNextDigitalPjkJob();
+          })
+          .withFailureHandler((error) => {
+            batch.results.push({
+              ok: false,
+              job,
+              error: error && error.message ? error.message : String(error),
+            });
+            batch.completed += 1;
+            setDigitalPreviewProgress(
+              batch.completed,
+              batch.jobs.length,
+              `สร้างแล้ว ${batch.completed}/${batch.jobs.length}`,
+            );
+            renderDigitalPreviewResults(batch.results);
+            processNextDigitalPjkJob();
+          })
+          .generateDigitalPjkBatchPreviewJob(job);
+      }
+
+      function finishDigitalPjkBatch() {
+        const batch = state.digitalPreviewBatch;
+        const results = batch ? batch.results : [];
+        const successResults = results.filter((item) => item.ok && item.result);
+        const failedResults = results.filter((item) => !item.ok);
+        state.digitalPreviewGenerating = false;
+        setDigitalPreviewGeneratingUi(false);
+        setDigitalPreviewProgress(results.length, results.length || 1, '100%');
+        renderDigitalPreviewResults(results);
+
+        if (successResults.length > 0) {
+          const firstResult = successResults[0].result;
+          const previewUrl = firstResult.previewUrl || ('https://drive.google.com/file/d/' + firstResult.fileId + '/preview');
+          elements.digitalPreviewFrame.src = previewUrl;
+          elements.digitalPreviewFrameWrap.hidden = false;
+          elements.digitalPreviewOpenLink.href = firstResult.fileUrl || previewUrl;
+          elements.digitalPreviewOpenLink.hidden = false;
+        }
+
+        elements.digitalPreviewStatus.classList.toggle('error', failedResults.length > 0);
+        elements.digitalPreviewStatus.textContent = [
+          `เสร็จแล้ว ${successResults.length}/${results.length} ไฟล์`,
+          failedResults.length ? `ล้มเหลว ${failedResults.length} ไฟล์` : '',
+          buildDigitalPjkWarningText(batch && batch.plan),
+        ].filter(Boolean).join(' • ');
+        elements.digitalPreviewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function handleDigitalPjkPreviewError(error) {
+        state.digitalPreviewGenerating = false;
+        state.digitalPreviewBatch = null;
+        setDigitalPreviewGeneratingUi(false);
+        elements.digitalPreviewStatus.classList.add('error');
+        elements.digitalPreviewStatus.textContent = error && error.message ? error.message : String(error);
+        elements.digitalPreviewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function setDigitalPreviewGeneratingUi(isGenerating) {
+        elements.digitalPreviewButton.disabled = isGenerating;
+        elements.digitalPreviewToolbarButton.disabled = isGenerating;
+        elements.digitalPreviewButton.textContent = isGenerating ? 'กำลังสร้าง...' : 'สร้างเอกสารทุกสาขา';
+        elements.digitalPreviewToolbarButton.textContent = isGenerating ? 'กำลังสร้าง...' : 'สร้างเอกสาร';
+      }
+
+      function setDigitalPreviewProgress(completed, total, label) {
+        const safeTotal = Math.max(Number(total) || 0, 1);
+        const safeCompleted = Math.min(Math.max(Number(completed) || 0, 0), safeTotal);
+        const percent = Math.round((safeCompleted / safeTotal) * 100);
+        elements.digitalPreviewProgressBar.style.width = `${percent}%`;
+        elements.digitalPreviewProgressText.textContent = label || `${percent}%`;
+      }
+
+      function renderDigitalPreviewResults(items) {
+        elements.digitalPreviewResults.replaceChildren();
+        elements.digitalPreviewResults.hidden = items.length === 0;
+
+        items.forEach((item, index) => {
+          const row = document.createElement('div');
+          row.className = 'document-preview-result-item';
+          if (!item.ok) {
+            row.classList.add('is-error');
+          }
+
+          const text = document.createElement('div');
+          const title = document.createElement('strong');
+          const detail = document.createElement('span');
+          if (item.ok && item.result) {
+            const result = item.result;
+            title.textContent = `สาขา ${result.branchCode || '-'} • ไฟล์ ${index + 1}`;
+            detail.textContent = [
+              result.fileName || result.fileId || '',
+              result.documentCountForBranch ? `${result.documentCountForBranch} หน้า` : '',
+              result.slotCount ? `${result.slotCount} slot` : '',
+              result.documentId ? `Document ID: ${result.documentId}` : '',
+            ].filter(Boolean).join(' • ');
+          } else {
+            title.textContent = `สาขา ${(item.job && item.job.branchCode) || '-'} • ล้มเหลว`;
+            detail.textContent = item.error || 'ไม่ทราบสาเหตุ';
+          }
+          text.appendChild(title);
+          text.appendChild(document.createElement('br'));
+          text.appendChild(detail);
+          row.appendChild(text);
+
+          if (item.ok && item.result && item.result.fileUrl) {
+            const link = document.createElement('a');
+            link.className = 'document-preview-link';
+            link.href = item.result.fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'เปิดใน Drive';
+            row.appendChild(link);
+          }
+
+          elements.digitalPreviewResults.appendChild(row);
+        });
+      }
+
+      function buildDigitalPjkNoJobStatus(plan) {
+        const skipped = (plan.skippedBranches || [])
+          .map((item) => `${item.branchCode}: ${item.reason === 'no_required_entries' ? 'ไม่มีรายการ' : item.reason}`)
+          .join(', ');
+        return `ไม่พบรายการที่ต้องออก ภจก.1${skipped ? ` (${skipped})` : ''}`;
+      }
+
+      function buildDigitalPjkWarningText(plan) {
+        const warnings = plan && Array.isArray(plan.warnings) ? plan.warnings : [];
+        if (warnings.length === 0) {
+          return '';
+        }
+
+        return `มีคำเตือน ${warnings.length} รายการ`;
       }
 
       function handlePilotCsvFileSelection(event) {
@@ -2004,12 +2639,63 @@
         elements.pilotStatus.classList.toggle('error', Boolean(isError));
       }
 
+      function toggleNoteSection() {
+        state.notesHidden = !state.notesHidden;
+        writeNoteSectionHiddenPreference();
+        updateNoteSectionToggleUi();
+
+        if (state.currentData) {
+          renderWorksheet(state.currentData);
+        }
+      }
+
+      function updateNoteSectionToggleUi() {
+        const button = elements.noteToggleButton;
+        if (!button) {
+          return;
+        }
+
+        const disabled = !state.currentData || !state.noteSectionAvailable;
+        button.disabled = disabled;
+        button.textContent = state.notesHidden ? 'แสดงหมายเหตุ' : 'ซ่อนหมายเหตุ';
+        button.title = state.notesHidden ? 'แสดงตารางหมายเหตุ' : 'ซ่อนตารางหมายเหตุ';
+        button.setAttribute('aria-pressed', !state.notesHidden && !disabled ? 'true' : 'false');
+        button.classList.toggle('is-active', !state.notesHidden && !disabled);
+        syncNoteCardVisibility();
+      }
+
+      function syncNoteCardVisibility() {
+        if (!elements.noteCard) {
+          return;
+        }
+
+        elements.noteCard.hidden = state.notesHidden || !state.noteSectionAvailable;
+      }
+
+      function readNoteSectionHiddenPreference() {
+        try {
+          const storedValue = window.localStorage.getItem(NOTE_SECTION_STORAGE_KEY);
+          return storedValue === null ? true : storedValue === 'true';
+        } catch (error) {
+          return true;
+        }
+      }
+
+      function writeNoteSectionHiddenPreference() {
+        try {
+          window.localStorage.setItem(NOTE_SECTION_STORAGE_KEY, state.notesHidden ? 'true' : 'false');
+        } catch (error) {
+          // Ignore storage failures inside embedded Apps Script frames.
+        }
+      }
+
       function toggleEditMode() {
         state.editMode = !state.editMode;
         if (!state.editMode) {
           state.selectedCell = null;
           state.selectionAnchor = null;
           state.selectedRange = null;
+          clearCellClipboard({ update: false });
         }
 
         if (state.currentData) {
@@ -2176,6 +2862,7 @@
         const hasSelection = Boolean(state.editMode && selectedCell);
         document.body.classList.toggle('symbol-catalog-open', hasSelection);
         elements.symbolCatalogDrawer.hidden = !hasSelection;
+        queuePageXScrollbarSync();
         elements.symbolCatalogList.replaceChildren();
         elements.symbolCatalogEmpty.hidden = true;
 
@@ -2704,6 +3391,7 @@
       function getSegmentTypeDisplay(segmentType) {
         const labels = {
           branch: 'สาขา',
+          branch_part_time: 'พาร์ทไทม์สาขา',
           branch_ot: 'สาขา OT',
           leave: 'ลา',
           meeting: 'ประชุม/งานพิเศษ',
@@ -2727,8 +3415,9 @@
         const segment = getSegmentTypeDisplay(shiftMeta.segmentType);
         const location = shiftMeta.locationCode ? `ที่ ${shiftMeta.locationCode}` : '';
         const impliedBase = shiftMeta.impliedBaseCode ? `ฐาน ${shiftMeta.impliedBaseCode}` : '';
+        const digitalPjk = shiftMeta.requiresDigitalPjk ? 'ต้องออก ภจก.1' : '';
 
-        return [timeRange, segment, location, impliedBase].filter(Boolean).join(' • ');
+        return [timeRange, segment, location, impliedBase, digitalPjk].filter(Boolean).join(' • ');
       }
 
       function isOffRawCode(rawCode) {
@@ -2832,6 +3521,7 @@
       }
 
       function setSelectedCellOffFromSelection() {
+        clearCellClipboard({ update: false });
         if (getSelectedRangeCellCount() > 1) {
           applyBulkLocalEdit('Off');
           return;
@@ -2845,6 +3535,7 @@
           return;
         }
 
+        clearCellClipboard({ update: false });
         if (!isRegularMonthlyOffCellInfo(state.selectedCell)) {
           setEditWarning('cell นี้ยังไม่ได้เป็น Off');
           return;
@@ -3556,6 +4247,7 @@
           return;
         }
 
+        clearCellClipboard({ update: false });
         if (getSelectedRangeCellCount() > 1) {
           applyBulkLocalEdit(rawCode);
           return;
@@ -3597,6 +4289,7 @@
         state.selectedCell = null;
         state.selectionAnchor = null;
         state.selectedRange = null;
+        clearCellClipboard({ update: false });
         updateSelectionClasses();
 
         clearEditWarning();
@@ -3608,6 +4301,7 @@
           return;
         }
 
+        clearCellClipboard({ update: false });
         const rawCode = String(elements.editRawCodeInput.value || '').trim();
         if (getSelectedRangeCellCount() > 1) {
           applyBulkLocalEdit(rawCode);
@@ -3637,6 +4331,7 @@
           return;
         }
 
+        clearCellClipboard({ update: false });
         if (getSelectedRangeCellCount() > 1) {
           applyBulkLocalEdit('');
           return;
@@ -4208,8 +4903,9 @@
           : '';
         const location = shiftMeta.locationCode ? `สาขา/ที่ทำงาน: ${shiftMeta.locationCode}` : '';
         const impliedBase = shiftMeta.impliedBaseCode ? `ฐาน: ${shiftMeta.impliedBaseCode}` : '';
+        const digitalPjk = shiftMeta.requiresDigitalPjk ? 'ต้องออก ภจก.1' : '';
 
-        return [timeRange, breakRange, segment, location, impliedBase].filter(Boolean).join(' • ');
+        return [timeRange, breakRange, segment, location, impliedBase, digitalPjk].filter(Boolean).join(' • ');
       }
 
       function resolveShiftMetaForRawCode(rawCode, roleGroup) {
@@ -4240,6 +4936,8 @@
             end: '',
             expectedWorkMinutes: '',
             impliedBaseCode: '',
+            requiresDigitalPjk: false,
+            digitalPjkReason: '',
             color: '',
             description: rawCode ? '' : 'ไม่มีรหัสเวร',
             leaveType: '',
@@ -4259,6 +4957,8 @@
           end: item.end || '',
           expectedWorkMinutes: item.expectedWorkMinutes || '',
           impliedBaseCode: item.impliedBaseCode || '',
+          requiresDigitalPjk: Boolean(item.requiresDigitalPjk),
+          digitalPjkReason: item.digitalPjkReason || '',
           color: item.color || '',
           description: item.description || '',
           leaveType: item.leaveType || '',
@@ -4718,8 +5418,104 @@
 
         const viewportPadding = window.matchMedia('(max-width: 720px)').matches ? 28 : 48;
         const minimumWidth = window.innerWidth - viewportPadding;
-        const tableWidth = table.scrollWidth + 30;
-        rosterCard.style.setProperty('--roster-width', `${Math.max(minimumWidth, tableWidth)}px`);
+        rosterCard.style.setProperty(
+          '--roster-width',
+          `${Math.ceil(minimumWidth)}px`,
+        );
+      }
+
+      function syncTableWrapScrollMode() {
+        if (!elements.tableWrap) {
+          return;
+        }
+
+        elements.tableWrap.style.maxHeight = 'none';
+        elements.tableWrap.style.minHeight = '0';
+        elements.tableWrap.style.maxWidth = '100%';
+        elements.tableWrap.style.overflow = 'auto';
+        elements.tableWrap.style.width = '100%';
+      }
+
+      function queuePageXScrollbarSync() {
+        if (state.pageXScrollbarFrame) {
+          return;
+        }
+
+        state.pageXScrollbarFrame = window.requestAnimationFrame(() => {
+          state.pageXScrollbarFrame = 0;
+          updatePageXScrollbar();
+        });
+      }
+
+      function updatePageXScrollbar() {
+        if (!elements.pageXScrollbar || !elements.pageXScrollbarSpacer) {
+          return;
+        }
+
+        const scrollTarget = getHorizontalScrollTarget();
+        if (!scrollTarget) {
+          elements.pageXScrollbar.hidden = true;
+          elements.pageXScrollbarSpacer.style.width = '0px';
+          document.body.classList.remove('has-page-x-scrollbar');
+          return;
+        }
+
+        const contentWidth = scrollTarget.scrollWidth || 0;
+        const viewportWidth = scrollTarget.clientWidth || 0;
+        const hasHorizontalOverflow = contentWidth > viewportWidth + 1;
+
+        document.body.classList.toggle('has-page-x-scrollbar', hasHorizontalOverflow);
+        elements.pageXScrollbar.hidden = !hasHorizontalOverflow;
+
+        if (!hasHorizontalOverflow) {
+          elements.pageXScrollbarSpacer.style.width = '0px';
+          return;
+        }
+
+        const scrollbarViewportWidth = elements.pageXScrollbar.clientWidth || window.innerWidth || viewportWidth;
+        const spacerWidth = Math.max(
+          scrollbarViewportWidth,
+          contentWidth - viewportWidth + scrollbarViewportWidth,
+        );
+        elements.pageXScrollbarSpacer.style.width = `${Math.ceil(spacerWidth)}px`;
+        syncPageXScrollbarPosition();
+      }
+
+      function getHorizontalScrollTarget() {
+        return elements.tableWrap || null;
+      }
+
+      function syncPageXScrollbarPosition() {
+        if (!elements.pageXScrollbar || elements.pageXScrollbar.hidden) {
+          return;
+        }
+
+        const scrollTarget = getHorizontalScrollTarget();
+        if (!scrollTarget) {
+          return;
+        }
+
+        const left = scrollTarget.scrollLeft || 0;
+        if (Math.abs(elements.pageXScrollbar.scrollLeft - left) <= 1) {
+          return;
+        }
+
+        state.pageXScrollbarSyncing = true;
+        elements.pageXScrollbar.scrollLeft = left;
+        state.pageXScrollbarSyncing = false;
+      }
+
+      function handlePageXScrollbarScroll() {
+        if (state.pageXScrollbarSyncing) {
+          return;
+        }
+
+        const scrollTarget = getHorizontalScrollTarget();
+        if (!scrollTarget) {
+          return;
+        }
+
+        scrollTarget.scrollLeft = elements.pageXScrollbar.scrollLeft;
       }
 
       function buildMergeState(merges) {
@@ -4787,19 +5583,26 @@
         return 'data-row';
       }
 
-      function getCellClass(cell, columnIndex, rowClass) {
+      function getCellClass(cell, columnIndex, rowClass, options = {}) {
         const classes = [];
+        const useStickyColumns = !options.disableSticky;
 
         if (cell.column === 1) {
           classes.push('cell-hidden-margin');
         }
 
         if (cell.column === 2) {
-          classes.push('cell-sequence', 'sticky-col');
+          classes.push('cell-sequence');
+          if (useStickyColumns) {
+            classes.push('sticky-col');
+          }
         }
 
         if (cell.column === 3) {
-          classes.push('cell-name', 'sticky-col');
+          classes.push('cell-name');
+          if (useStickyColumns) {
+            classes.push('sticky-col');
+          }
         }
 
         if (cell.column === 4) {
@@ -4847,6 +5650,13 @@
 
           if (isSelectedCell(cell)) {
             classes.push('is-selected');
+          }
+
+          if (isCellClipboardSource(cell)) {
+            classes.push('is-clipboard-source');
+            if (isCutCellClipboardSource(cell)) {
+              classes.push('is-cut-source');
+            }
           }
         }
 
@@ -4955,6 +5765,7 @@
           }
         });
         td.addEventListener('click', (event) => selectEditableCell(td, cell, { extend: event.shiftKey }));
+        td.addEventListener('dblclick', () => clearCellClipboard());
         td.addEventListener('keydown', (event) => {
           if (handleScheduleKeyboardShortcut(event)) {
             return;
@@ -5036,6 +5847,8 @@
 
           element.classList.toggle('is-selected', isActive);
           element.classList.toggle('is-range-selected', inRange && !isActive);
+          element.classList.toggle('is-clipboard-source', isCellClipboardSourceByPosition(row, column));
+          element.classList.toggle('is-cut-source', isCutCellClipboardSourceByPosition(row, column));
         });
       }
 
@@ -5067,6 +5880,287 @@
         });
 
         return selectedCells.sort((left, right) => left.row - right.row || left.column - right.column);
+      }
+
+      function copySelectedCellsToClipboard(mode) {
+        const cells = getSelectedEditableCellInfos();
+        if (!cells.length) {
+          return;
+        }
+
+        const bounds = getCellInfoBounds(cells);
+        state.cellClipboard = {
+          mode,
+          sheetName: state.currentSheetName,
+          startRow: bounds.startRow,
+          startColumn: bounds.startColumn,
+          endRow: bounds.endRow,
+          endColumn: bounds.endColumn,
+          rowSpan: bounds.endRow - bounds.startRow + 1,
+          columnSpan: bounds.endColumn - bounds.startColumn + 1,
+          sourceKeys: new Set(cells.map((cellInfo) => cellInfo.key)),
+          cells: cells.map((cellInfo) => ({
+            ...cellInfo,
+            pasteRawCode: getClipboardPasteRawCode(cellInfo),
+            rowOffset: cellInfo.row - bounds.startRow,
+            columnOffset: cellInfo.column - bounds.startColumn,
+          })),
+        };
+
+        updateSelectionClasses();
+        clearEditWarning();
+        setEditWarning(`${mode === 'cut' ? 'ตัด' : 'คัดลอก'} ${cells.length} cell แล้ว`);
+      }
+
+      function getClipboardPasteRawCode(cellInfo) {
+        if (isPublicHolidayCellInfo(cellInfo)) {
+          return 'PL';
+        }
+
+        return cellInfo.rawCode || '';
+      }
+
+      function clearCellClipboard(options = {}) {
+        if (!state.cellClipboard) {
+          return;
+        }
+
+        state.cellClipboard = null;
+        if (options.update !== false) {
+          updateSelectionClasses();
+        }
+      }
+
+      function pasteCellClipboard() {
+        if (!state.selectedCell || !state.currentData) {
+          return;
+        }
+
+        const clipboard = state.cellClipboard;
+        if (!clipboard || clipboard.sheetName !== state.currentSheetName) {
+          setEditWarning('ไม่มี cell ที่ copy/cut ค้างไว้');
+          return;
+        }
+
+        const plan = createClipboardPastePlan(clipboard);
+        if (!plan.ok) {
+          setEditWarning(plan.message);
+          return;
+        }
+
+        applyClipboardPastePlan(clipboard, plan);
+      }
+
+      function createClipboardPastePlan(clipboard) {
+        const selectedTargets = getSelectedEditableCellInfos();
+        if (!selectedTargets.length) {
+          return { ok: false, message: 'เลือก cell ปลายทางก่อน paste' };
+        }
+
+        if (selectedTargets.length > 1 && clipboard.cells.length === 1) {
+          const source = clipboard.cells[0];
+          return {
+            ok: true,
+            assignments: selectedTargets.map((target) => ({
+              rawCode: source.pasteRawCode,
+              source,
+              target,
+            })),
+          };
+        }
+
+        if (selectedTargets.length > 1) {
+          const targetBounds = getCellInfoBounds(selectedTargets);
+          const targetRowSpan = targetBounds.endRow - targetBounds.startRow + 1;
+          const targetColumnSpan = targetBounds.endColumn - targetBounds.startColumn + 1;
+
+          if (targetRowSpan !== clipboard.rowSpan || targetColumnSpan !== clipboard.columnSpan) {
+            return {
+              ok: false,
+              message: `ขนาด range ปลายทางต้องเท่ากับ ${clipboard.rowSpan}x${clipboard.columnSpan} หรือ copy แค่ 1 cell เพื่อเติมหลาย cell`,
+            };
+          }
+
+          return mapClipboardCellsToTargetStart(clipboard, targetBounds.startRow, targetBounds.startColumn);
+        }
+
+        return mapClipboardCellsToTargetStart(clipboard, state.selectedCell.row, state.selectedCell.column);
+      }
+
+      function mapClipboardCellsToTargetStart(clipboard, startRow, startColumn) {
+        const assignments = [];
+
+        for (const source of clipboard.cells) {
+          const target = getEditableCellInfoAt(startRow + source.rowOffset, startColumn + source.columnOffset);
+          if (!target) {
+            return {
+              ok: false,
+              message: 'พื้นที่ปลายทางไม่พอหรือมี cell ที่แก้ไขไม่ได้',
+            };
+          }
+
+          assignments.push({
+            rawCode: source.pasteRawCode,
+            source,
+            target,
+          });
+        }
+
+        return { ok: true, assignments };
+      }
+
+      function applyClipboardPastePlan(clipboard, plan) {
+        const assignments = plan.assignments || [];
+        const targetKeys = new Set(assignments.map((assignment) => assignment.target.key));
+        const cutSourcesToClear = clipboard.mode === 'cut'
+          ? clipboard.cells.filter((source) => !targetKeys.has(source.key))
+          : [];
+        const beforeSnapshot = clonePendingEditsSnapshot();
+
+        beginPendingEditHistoryStep();
+        setEditWarning('กำลัง paste...');
+
+        prepareClipboardComputedCaches(assignments, cutSourcesToClear)
+          .then(() => {
+            assignments.forEach((assignment) => {
+              setPendingRawCodeForCell(assignment.target, assignment.rawCode);
+            });
+            cutSourcesToClear.forEach((source) => {
+              setPendingRawCodeForCell(source, '');
+            });
+
+            if (!normalizeClipboardComputedSequences()) {
+              rollbackClipboardPaste(beforeSnapshot, elements.editWarning.textContent || 'paste ไม่สำเร็จ');
+              return;
+            }
+
+            commitPendingEditHistoryStep();
+            if (clipboard.mode === 'cut') {
+              clearCellClipboard({ update: false });
+            }
+            clearEditWarning();
+            syncSelectedCellFromPending();
+            renderWorksheet(state.currentData);
+            setEditWarning(`${clipboard.mode === 'cut' ? 'ย้าย' : 'paste'} ${assignments.length} cell แล้ว`);
+          })
+          .catch((error) => {
+            rollbackClipboardPaste(
+              beforeSnapshot,
+              error && error.message ? error.message : String(error),
+            );
+          });
+      }
+
+      function rollbackClipboardPaste(snapshot, message) {
+        state.pendingEditHistoryBefore = null;
+        state.pendingEdits = new Map(
+          (snapshot || []).map(([key, value]) => [key, JSON.parse(JSON.stringify(value))]),
+        );
+        syncSelectedCellFromPending();
+        renderWorksheet(state.currentData);
+        setEditWarning(message);
+      }
+
+      function prepareClipboardComputedCaches(assignments, cutSourcesToClear) {
+        const annualCells = [];
+        const publicHolidayCells = [];
+
+        assignments.forEach((assignment) => {
+          if (clipboardAssignmentTouchesAnnualLeave(assignment)) {
+            annualCells.push(assignment.target);
+          }
+
+          if (clipboardAssignmentTouchesPublicHoliday(assignment)) {
+            publicHolidayCells.push(assignment.target);
+          }
+        });
+
+        cutSourcesToClear.forEach((source) => {
+          if (isAnnualLeaveRawCode(source.rawCode) || isAnnualLeaveRawCode(source.originalRawCode)) {
+            annualCells.push(source);
+          }
+
+          if (isPublicHolidayCellInfo(source)) {
+            publicHolidayCells.push(source);
+          }
+        });
+
+        return fetchAnnualLeaveYearDataForCells(dedupeCellsByRowAndYear(annualCells))
+          .then(() => fetchPublicHolidayYearDataForCells(dedupeCellsByRowAndYear(publicHolidayCells)));
+      }
+
+      function clipboardAssignmentTouchesAnnualLeave(assignment) {
+        return (
+          isAnnualLeaveLikeRawCode(assignment.rawCode) ||
+          isAnnualLeaveRawCode(assignment.target.rawCode) ||
+          isAnnualLeaveRawCode(assignment.target.originalRawCode)
+        );
+      }
+
+      function clipboardAssignmentTouchesPublicHoliday(assignment) {
+        return (
+          isPublicHolidayLikeRawCode(assignment.rawCode) ||
+          isPublicHolidayCellInfo(assignment.target) ||
+          isPublicHolidayCellInfo(assignment.source)
+        );
+      }
+
+      function dedupeCellsByRowAndYear(cells) {
+        const seen = new Set();
+        return cells.filter((cellInfo) => {
+          const key = `${cellInfo.row}:${cellInfo.year || getCurrentScheduleYear()}`;
+          if (seen.has(key)) {
+            return false;
+          }
+
+          seen.add(key);
+          return true;
+        });
+      }
+
+      function normalizeClipboardComputedSequences() {
+        if (!normalizePendingOffSequences()) {
+          return false;
+        }
+
+        if (!normalizePendingPublicHolidaySequences()) {
+          return false;
+        }
+
+        if (!normalizePendingAnnualLeaveSequences()) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function getCellInfoBounds(cells) {
+        return cells.reduce((bounds, cellInfo) => ({
+          startRow: Math.min(bounds.startRow, cellInfo.row),
+          endRow: Math.max(bounds.endRow, cellInfo.row),
+          startColumn: Math.min(bounds.startColumn, cellInfo.column),
+          endColumn: Math.max(bounds.endColumn, cellInfo.column),
+        }), {
+          startRow: Number.POSITIVE_INFINITY,
+          endRow: Number.NEGATIVE_INFINITY,
+          startColumn: Number.POSITIVE_INFINITY,
+          endColumn: Number.NEGATIVE_INFINITY,
+        });
+      }
+
+      function getEditableCellInfoAt(rowNumber, column) {
+        const row = getWorksheetRow(rowNumber);
+        if (!row) {
+          return null;
+        }
+
+        const rowClass = getRowClass(row);
+        const cell = row.cells.find((item) => item.column === column);
+        if (!cell || !isEditableCell(cell, rowClass)) {
+          return null;
+        }
+
+        return createSelectedCellInfo(withPendingEdit(cell));
       }
 
       function handleScheduleKeyboardShortcut(event) {
@@ -5101,6 +6195,27 @@
 
         if (!state.selectedCell || isKeyboardEventFromTextEntry(event)) {
           return false;
+        }
+
+        if (hasModifier && key === 'c') {
+          event.preventDefault();
+          event.stopPropagation();
+          copySelectedCellsToClipboard('copy');
+          return true;
+        }
+
+        if (hasModifier && key === 'x') {
+          event.preventDefault();
+          event.stopPropagation();
+          copySelectedCellsToClipboard('cut');
+          return true;
+        }
+
+        if (hasModifier && key === 'v') {
+          event.preventDefault();
+          event.stopPropagation();
+          pasteCellClipboard();
+          return true;
         }
 
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
@@ -5221,12 +6336,15 @@
       }
 
       function updateDragAutoScroll(event) {
-        const tableWrap = elements.tableWrap;
-        if (!tableWrap) {
-          return;
-        }
-
-        const rect = tableWrap.getBoundingClientRect();
+        const tableRect = elements.tableWrap
+          ? elements.tableWrap.getBoundingClientRect()
+          : { left: 0, right: window.innerWidth };
+        const rect = {
+          bottom: window.innerHeight,
+          left: tableRect.left,
+          right: tableRect.right,
+          top: 0,
+        };
         const edgeSize = 56;
         const maxSpeed = 26;
         const withinHorizontalZone = event.clientX >= rect.left - edgeSize && event.clientX <= rect.right + edgeSize;
@@ -5284,10 +6402,15 @@
           return;
         }
 
-        elements.tableWrap.scrollBy({
-          left: state.dragAutoScrollX,
-          top: state.dragAutoScrollY,
-        });
+        if (state.dragAutoScrollX && elements.tableWrap) {
+          elements.tableWrap.scrollBy({ left: state.dragAutoScrollX });
+        }
+
+        if (state.dragAutoScrollY) {
+          window.scrollBy({ top: state.dragAutoScrollY });
+        }
+
+        syncPageXScrollbarPosition();
         selectEditableCellFromPoint(state.dragPointerX, state.dragPointerY);
         state.dragAutoScrollFrame = window.requestAnimationFrame(runDragAutoScroll);
       }
@@ -5309,9 +6432,8 @@
           return null;
         }
 
-        const rect = elements.tableWrap.getBoundingClientRect();
-        const clampedX = Math.min(Math.max(clientX, rect.left + 2), rect.right - 2);
-        const clampedY = Math.min(Math.max(clientY, rect.top + 2), rect.bottom - 2);
+        const clampedX = Math.min(Math.max(clientX, 2), window.innerWidth - 2);
+        const clampedY = Math.min(Math.max(clientY, 2), window.innerHeight - 2);
         const element = document.elementFromPoint(clampedX, clampedY);
         const editableCell = element && element.closest ? element.closest('.editable-cell') : null;
         return editableCell && elements.worksheetTable.contains(editableCell) ? editableCell : null;
@@ -5335,17 +6457,19 @@
           deltaX = cellRect.right - wrapRect.right + gutter;
         }
 
-        if (cellRect.top < wrapRect.top + gutter) {
-          deltaY = cellRect.top - wrapRect.top - gutter;
-        } else if (cellRect.bottom > wrapRect.bottom - gutter) {
-          deltaY = cellRect.bottom - wrapRect.bottom + gutter;
+        if (cellRect.top < gutter) {
+          deltaY = cellRect.top - gutter;
+        } else if (cellRect.bottom > window.innerHeight - gutter) {
+          deltaY = cellRect.bottom - window.innerHeight + gutter;
         }
 
-        if (deltaX || deltaY) {
-          tableWrap.scrollBy({
-            left: deltaX,
-            top: deltaY,
-          });
+        if (deltaX) {
+          tableWrap.scrollBy({ left: deltaX });
+          syncPageXScrollbarPosition();
+        }
+
+        if (deltaY) {
+          window.scrollBy({ top: deltaY });
         }
       }
 
@@ -5441,6 +6565,14 @@
         );
       }
 
+      function hasNoteSection(data) {
+        return Boolean(
+          data &&
+          Array.isArray(data.rows) &&
+          data.rows.some((row) => getRowClass(row) === 'section-row' && getCellValue(row, 2) === 'หมายเหตุ')
+        );
+      }
+
       function isScheduleColumn(cell) {
         return cell.column >= state.scheduleStartColumn && cell.column <= state.scheduleEndColumn;
       }
@@ -5454,6 +6586,31 @@
           state.selectedCell &&
           state.selectedCell.row === cell.row &&
           state.selectedCell.column === cell.column
+        );
+      }
+
+      function isCellClipboardSource(cell) {
+        return isCellClipboardSourceByPosition(cell.row, cell.column);
+      }
+
+      function isCutCellClipboardSource(cell) {
+        return isCutCellClipboardSourceByPosition(cell.row, cell.column);
+      }
+
+      function isCellClipboardSourceByPosition(row, column) {
+        const clipboard = state.cellClipboard;
+        if (!clipboard || clipboard.sheetName !== state.currentSheetName || !clipboard.sourceKeys) {
+          return false;
+        }
+
+        return clipboard.sourceKeys.has(getPendingEditKey(state.currentSheetName, row, column));
+      }
+
+      function isCutCellClipboardSourceByPosition(row, column) {
+        return Boolean(
+          state.cellClipboard &&
+          state.cellClipboard.mode === 'cut' &&
+          isCellClipboardSourceByPosition(row, column)
         );
       }
 

@@ -27,6 +27,15 @@ const REGULAR_OFF_BACKGROUNDS = ['#00a9e0', '#00b0f0', '#00ace6'];
 const PUBLIC_HOLIDAY_BACKGROUNDS = ['#bf9000', '#c49a00', '#c79a00', '#cc9900'];
 const MAX_PUBLIC_HOLIDAY_LEAVE_COUNT = 13;
 const MAX_ANNUAL_LEAVE_COUNT = 6;
+const DIGITAL_PJK_BASE_URL = 'https://digitalpjkform.onrender.com/api';
+const DIGITAL_PJK_USERNAME = 'admin000';
+const DIGITAL_PJK_PASSWORD = 'S123123c';
+const DIGITAL_PJK_TOKEN_PROPERTY = 'DIGITAL_PJK_ADMIN_JWT';
+const DIGITAL_PJK_TOKEN_TS_PROPERTY = 'DIGITAL_PJK_ADMIN_JWT_TS';
+const DIGITAL_PJK_TOKEN_TTL_MS = 50 * 60 * 1000;
+const DIGITAL_PJK_REQUIRED_REASON = 'เภสัชกรชั่วคราวไปปฏิบัติการแทนเภสัชกรประจำสาขา ต้องออก ภจก.1';
+const DIGITAL_PJK_TARGET_BRANCH_CODES = ['001', '003', '004', '005'];
+const DIGITAL_PJK_MAX_SLOTS_PER_DOCUMENT = 3;
 const PILOT_ATTENDANCE_EMPLOYEE_FULL_NAME = 'ณัฐธนนท์ มานะกุล';
 const PILOT_ATTENDANCE_EMPLOYEE_FIRST_NAME = 'ณัฐธนนท์';
 const PILOT_ATTENDANCE_EMPLOYEE_NUMBER = '26001';
@@ -126,6 +135,460 @@ function getNormalizedScheduleData(sheetName) {
     shiftDictionaryItemCount: model.shiftDictionaryItems.length,
   }, null, 2));
   return model;
+}
+
+function getDigitalPjkRequiredScheduleEntries(sheetName) {
+  const spreadsheet = getTargetSpreadsheet_();
+  const targetSheetName = getReadableScheduleSheetName_(spreadsheet, sheetName || SHEET_NAME);
+  const sheet = spreadsheet.getSheetByName(targetSheetName);
+  assertSheet_(spreadsheet, sheet, targetSheetName);
+
+  const values = sheet.getDataRange().getDisplayValues();
+  const model = buildNormalizedScheduleModel_(spreadsheet, sheet, values);
+  const entries = model.scheduleEntries
+    .filter(isDigitalPjkRequiredScheduleEntry_)
+    .map(createDigitalPjkRequiredScheduleEntry_);
+
+  return {
+    spreadsheetName: model.spreadsheetName,
+    spreadsheetId: model.spreadsheetId,
+    sheetName: model.sheetName,
+    generatedAt: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss'),
+    count: entries.length,
+    entries,
+  };
+}
+
+function isDigitalPjkRequiredScheduleEntry_(entry) {
+  return Boolean(
+    entry &&
+      entry.requiresDigitalPjk &&
+      isPharmacistRoleGroup_(entry.roleGroup) &&
+      entry.rawCode &&
+      entry.locationCode &&
+      entry.workDate
+  );
+}
+
+function isPharmacistRoleGroup_(roleGroup) {
+  return ['senior_pharmacist', 'operation_pharmacist'].indexOf(String(roleGroup || '')) !== -1;
+}
+
+function createDigitalPjkRequiredScheduleEntry_(entry) {
+  return {
+    scheduleEntryId: entry.scheduleEntryId,
+    sheetName: entry.sheetName,
+    workDate: entry.workDate,
+    dayNumber: entry.dayNumber,
+    weekday: entry.weekday,
+    employeeName: entry.employeeName,
+    roleGroup: entry.roleGroup,
+    rawCode: entry.rawCode,
+    branchCode: entry.locationCode,
+    timeStart: entry.start,
+    timeEnd: entry.end,
+    missingTimeRange: !(entry.start && entry.end),
+    expectedWorkMinutes: entry.expectedWorkMinutes,
+    sourceRow: entry.sourceRow,
+    sourceColumn: entry.sourceColumn,
+    a1: entry.a1,
+    reason: entry.digitalPjkReason || DIGITAL_PJK_REQUIRED_REASON,
+  };
+}
+
+function prepareDigitalPjkBatchPreview(sheetName) {
+  const schedule = getDigitalPjkRequiredScheduleEntries(sheetName || SHEET_NAME);
+  const token = loginToDigitalPjk();
+  const branchMap = getDigitalPjkBranchMap_(token);
+  const pharmacistMap = getDigitalPjkPartTimePharmacistMap_(token);
+  const jobs = [];
+  const warnings = [];
+  const skippedBranches = [];
+  const entriesByBranch = groupDigitalPjkEntriesByBranch_(schedule.entries);
+
+  DIGITAL_PJK_TARGET_BRANCH_CODES.forEach((branchCode) => {
+    const entries = entriesByBranch[branchCode] || [];
+    const branch = branchMap[branchCode];
+
+    if (!branch) {
+      warnings.push(`ไม่พบ branch ${branchCode} ใน DigitalPJK`);
+      skippedBranches.push({
+        branchCode,
+        reason: 'missing_branch',
+        entryCount: entries.length,
+      });
+      return;
+    }
+
+    if (entries.length === 0) {
+      skippedBranches.push({
+        branchCode,
+        reason: 'no_required_entries',
+        entryCount: 0,
+      });
+      return;
+    }
+
+    const slots = buildDigitalPjkSlotsFromEntries_(entries, pharmacistMap, warnings);
+    const slotChunks = chunkArray_(slots, DIGITAL_PJK_MAX_SLOTS_PER_DOCUMENT);
+    const documents = slotChunks.map((slotChunk, index) => ({
+      templateKey: 'form_gor_gor_1',
+      formData: {
+        customNote: `สร้างจาก ClaspSCShift: ${schedule.sheetName} หน้า ${index + 1}/${slotChunks.length}`,
+      },
+      subPharmacistSlots: slotChunk,
+    }));
+
+    jobs.push({
+      jobId: branchCode,
+      branchCode,
+      branchId: branch.id,
+      branchName: branch.branch_name_th || branch.pharmacy_name || '',
+      documentIndex: 1,
+      documentCountForBranch: slotChunks.length,
+      entryCount: entries.length,
+      slotCount: slots.length,
+      payload: {
+        branchId: branch.id,
+        documents,
+      },
+    });
+  });
+
+  return {
+    ok: true,
+    spreadsheetName: schedule.spreadsheetName,
+    spreadsheetId: schedule.spreadsheetId,
+    sheetName: schedule.sheetName,
+    generatedAt: schedule.generatedAt,
+    targetBranchCodes: DIGITAL_PJK_TARGET_BRANCH_CODES,
+    totalEntries: schedule.count,
+    totalJobs: jobs.length,
+    jobs,
+    skippedBranches,
+    warnings,
+  };
+}
+
+function generateDigitalPjkBatchPreviewJob(job) {
+  if (!job || typeof job !== 'object' || Array.isArray(job)) {
+    throw new Error('generateDigitalPjkBatchPreviewJob(job) requires a job object.');
+  }
+
+  if (!job.payload || !job.branchCode) {
+    throw new Error('DigitalPJK job is missing payload or branchCode.');
+  }
+
+  const result = generateDigitalPjkMergedDocument(job.payload);
+  return Object.assign({}, result, {
+    jobId: job.jobId || '',
+    branchCode: job.branchCode,
+    branchName: job.branchName || '',
+    documentIndex: job.documentIndex || 1,
+    documentCountForBranch: job.documentCountForBranch || 1,
+    slotCount: job.slotCount || 0,
+  });
+}
+
+function generateDigitalPjkDocument(payload) {
+  return generateDigitalPjkPdf_('/documents/generate?save=true', payload, 'generateDigitalPjkDocument(payload)');
+}
+
+function generateDigitalPjkMergedDocument(payload) {
+  return generateDigitalPjkPdf_('/documents/generate-merged?save=true', payload, 'generateDigitalPjkMergedDocument(payload)');
+}
+
+function generateDigitalPjkPdf_(path, payload, validationLabel) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error(`${validationLabel} requires a JSON object payload.`);
+  }
+
+  const token = loginToDigitalPjk();
+  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}${path}`, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true,
+  });
+
+  const statusCode = response.getResponseCode();
+  if (statusCode !== 200) {
+    const responseText = response.getContentText();
+    if (statusCode === 401) {
+      clearDigitalPjkTokenCache_();
+    }
+
+    throw new Error(`DigitalPJK document generation failed (${statusCode}): ${responseText}`);
+  }
+
+  const documentId = getDigitalPjkResponseHeader_(response, 'X-Document-Id');
+  const contentType = getDigitalPjkResponseHeader_(response, 'Content-Type') || 'application/pdf';
+  const timestamp = Utilities.formatDate(
+    new Date(),
+    Session.getScriptTimeZone(),
+    'yyyyMMdd-HHmmss',
+  );
+  const fileName = documentId
+    ? 'digital-pjk-' + documentId + '.pdf'
+    : 'digital-pjk-' + timestamp + '.pdf';
+  const blob = Utilities.newBlob(response.getContent(), contentType, fileName);
+  const file = DriveApp.createFile(blob);
+
+  return {
+    ok: true,
+    statusCode,
+    documentId: documentId || '',
+    fileId: file.getId(),
+    fileName,
+    fileUrl: file.getUrl(),
+    previewUrl: 'https://drive.google.com/file/d/' + file.getId() + '/preview',
+  };
+}
+
+function groupDigitalPjkEntriesByBranch_(entries) {
+  return (entries || []).reduce((map, entry) => {
+    const branchCode = normalizeDigitalPjkBranchCode_(entry.branchCode);
+    if (!branchCode) {
+      return map;
+    }
+
+    if (!map[branchCode]) {
+      map[branchCode] = [];
+    }
+
+    map[branchCode].push(entry);
+    return map;
+  }, {});
+}
+
+function buildDigitalPjkSlotsFromEntries_(entries, pharmacistMap, warnings) {
+  const groups = {};
+  entries.forEach((entry) => {
+    const pharmacist = resolveDigitalPjkPartTimePharmacist_(entry.employeeName, pharmacistMap);
+    const pharmacistName = pharmacist
+      ? pharmacist.displayName
+      : String(entry.employeeName || '').trim();
+    const pharmacistLicense = pharmacist ? pharmacist.licenseNumber : '';
+
+    if (!pharmacistLicense) {
+      warnings.push(`ไม่พบเลขใบอนุญาตของ ${entry.employeeName || '-'} (${entry.rawCode || '-'} ${entry.workDate || '-'})`);
+    }
+
+    if (entry.missingTimeRange) {
+      warnings.push(`ยังไม่มีเวลาเริ่ม-จบของ ${entry.rawCode || '-'} ที่ ${entry.a1 || '-'} (${entry.employeeName || '-'})`);
+    }
+
+    const key = [
+      entry.branchCode,
+      normalizeHumanName_(pharmacistName),
+      pharmacistLicense,
+      entry.timeStart || '',
+      entry.timeEnd || '',
+    ].join('|');
+
+    if (!groups[key]) {
+      groups[key] = {
+        pharmacistName,
+        pharmacistLicense,
+        timeStart: entry.timeStart || '',
+        timeEnd: entry.timeEnd || '',
+        entries: [],
+      };
+    }
+
+    groups[key].entries.push(entry);
+  });
+
+  const allSlots = Object.keys(groups).reduce((slots, key) => {
+    const group = groups[key];
+    const sortedEntries = group.entries.slice().sort((a, b) => String(a.workDate).localeCompare(String(b.workDate)));
+    let currentSlot = null;
+    let previousDate = '';
+
+    sortedEntries.forEach((entry) => {
+      if (!currentSlot || !areConsecutiveIsoDates_(previousDate, entry.workDate)) {
+        currentSlot = {
+          pharmacistName: group.pharmacistName,
+          pharmacistLicense: group.pharmacistLicense,
+          dateStart: entry.workDate,
+          dateEnd: entry.workDate,
+          timeStart: group.timeStart,
+          timeEnd: group.timeEnd,
+        };
+        slots.push(currentSlot);
+      } else {
+        currentSlot.dateEnd = entry.workDate;
+      }
+
+      previousDate = entry.workDate;
+    });
+
+    return slots;
+  }, []);
+
+  allSlots.sort((a, b) => {
+    // 1. เรียงตามวันที่เริ่ม (dateStart) ก่อน
+    if (a.dateStart !== b.dateStart) {
+      return String(a.dateStart).localeCompare(String(b.dateStart));
+    }
+
+    // 2. ถ้าวันที่เริ่มตรงกัน ให้ยึดหลัก "วันเดียวจะต้องขึ้นก่อน หลายวันเสมอ"
+    const aIsSingleDay = a.dateStart === a.dateEnd;
+    const bIsSingleDay = b.dateStart === b.dateEnd;
+    if (aIsSingleDay && !bIsSingleDay) {
+      return -1; // A ทำวันเดียว ให้อยู่ก่อน B ที่ทำหลายวัน
+    }
+    if (!aIsSingleDay && bIsSingleDay) {
+      return 1; // A ทำหลายวัน ให้อยู่หลัง B ที่ทำวันเดียว
+    }
+
+    // 3. ถ้าช่วงเวลาหลายวันเหมือนกัน ให้เรียงตามวันที่สิ้นสุด
+    if (a.dateEnd !== b.dateEnd) {
+      return String(a.dateEnd).localeCompare(String(b.dateEnd));
+    }
+
+    // 4. กรณีทุกอย่างเหมือนกันให้เรียงตามชื่อ
+    return String(a.pharmacistName).localeCompare(String(b.pharmacistName));
+  });
+
+  return allSlots;
+}
+
+function resolveDigitalPjkPartTimePharmacist_(employeeName, pharmacistMap) {
+  const normalizedName = normalizeHumanName_(employeeName);
+  if (!normalizedName) {
+    return null;
+  }
+
+  return pharmacistMap[normalizedName] || pharmacistMap[removeThaiPharmacistTitle_(normalizedName)] || null;
+}
+
+function getDigitalPjkBranchMap_(token) {
+  const data = fetchDigitalPjkJson_('/branches', token, 'DigitalPJK branch list');
+  return (data.branches || []).reduce((map, branch) => {
+    const branchCode = normalizeDigitalPjkBranchCode_(branch.branch_code || branch.branchCode);
+    if (branchCode) {
+      map[branchCode] = branch;
+    }
+    return map;
+  }, {});
+}
+
+function getDigitalPjkPartTimePharmacistMap_(token) {
+  const data = fetchDigitalPjkJson_('/pharmacists/part-time', token, 'DigitalPJK part-time pharmacist list');
+  const pharmacistMap = (data.pharmacists || []).reduce((map, pharmacist) => {
+    const displayName = String(pharmacist.display_name || '').trim();
+    const licenseNumber = String(pharmacist.license_number || '').trim();
+    const keys = [
+      displayName,
+      `${pharmacist.pharmacist_title || ''} ${pharmacist.pharmacist_name || ''}`,
+      pharmacist.pharmacist_name || '',
+    ];
+
+    keys.forEach((key) => {
+      const normalizedKey = normalizeHumanName_(key);
+      if (normalizedKey) {
+        map[normalizedKey] = { displayName, licenseNumber };
+        map[removeThaiPharmacistTitle_(normalizedKey)] = { displayName, licenseNumber };
+      }
+    });
+
+    return map;
+  }, {});
+
+  // เพิ่ม Mapping เลขใบอนุญาตประกอบวิชาชีพของพนักงานแบบ Hardcode 
+  // เพื่อป้องกันข้อมูลที่ขาดหายหรือพิมพ์ผิดจาก DB ต้นทาง
+  const manualOverrides = [
+    { displayName: 'ภก. ชวิศ ดิษฐาพร', name: 'ชวิศ ดิษฐาพร', licenseNumber: '45976' },
+    { displayName: 'ภญ. ทิพวรรณ เรืองสุข', name: 'ทิพวรรณ เรืองสุข', licenseNumber: '38604' },
+    { displayName: 'ภก. ธนพล แสงทับทิม', name: 'ธนพล แสงทับทิม', licenseNumber: '40596' },
+  ];
+
+  manualOverrides.forEach((manual) => {
+    const keys = [manual.displayName, manual.name];
+    keys.forEach((key) => {
+      const normalizedKey = normalizeHumanName_(key);
+      if (normalizedKey) {
+        pharmacistMap[normalizedKey] = { displayName: manual.displayName, licenseNumber: manual.licenseNumber };
+        pharmacistMap[removeThaiPharmacistTitle_(normalizedKey)] = { displayName: manual.displayName, licenseNumber: manual.licenseNumber };
+      }
+    });
+  });
+
+  // ลบชื่อที่พิมพ์ผิดพลาด (ธนัพล) ออกจาก List เลย เผื่อมีหลุดมาจากแหล่งข้อมูลอื่น
+  const typoKeys = ['ธนัพล', 'ภก. ธนัพล', 'ธนัพล แสงทับทิม'];
+  typoKeys.forEach((typoKey) => {
+    const normalizedKey = normalizeHumanName_(typoKey);
+    if (normalizedKey) {
+      delete pharmacistMap[normalizedKey];
+      delete pharmacistMap[removeThaiPharmacistTitle_(normalizedKey)];
+    }
+  });
+
+  return pharmacistMap;
+}
+
+function fetchDigitalPjkJson_(path, token, label) {
+  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}${path}`, {
+    method: 'get',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    muteHttpExceptions: true,
+  });
+  const statusCode = response.getResponseCode();
+  const responseText = response.getContentText();
+
+  if (statusCode !== 200) {
+    if (statusCode === 401) {
+      clearDigitalPjkTokenCache_();
+    }
+    throw new Error(`${label} failed (${statusCode}): ${responseText}`);
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch (error) {
+    throw new Error(`${label} returned invalid JSON: ${responseText}`);
+  }
+}
+
+function normalizeDigitalPjkBranchCode_(value) {
+  const text = String(value || '').trim();
+  if (!text) {
+    return '';
+  }
+
+  return /^\d+$/.test(text) ? text.padStart(3, '0') : text;
+}
+
+function removeThaiPharmacistTitle_(normalizedName) {
+  return String(normalizedName || '')
+    .replace(/^ภก\.?/, '')
+    .replace(/^ภญ\.?/, '')
+    .replace(/^เภสัชกรหญิง/, '')
+    .replace(/^เภสัชกร/, '');
+}
+
+function areConsecutiveIsoDates_(previousIsoDate, nextIsoDate) {
+  if (!previousIsoDate || !nextIsoDate) {
+    return false;
+  }
+
+  const previousDate = new Date(`${previousIsoDate}T00:00:00Z`);
+  const nextDate = new Date(`${nextIsoDate}T00:00:00Z`);
+  return nextDate.getTime() - previousDate.getTime() === 24 * 60 * 60 * 1000;
+}
+
+function chunkArray_(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
 }
 
 function inspectPilotAttendanceEmployee(sheetName) {
@@ -2100,6 +2563,8 @@ function buildScheduleEntryModels_(sheet, values, employees, shiftDictionaryItem
         end: dictionaryItem.end,
         expectedWorkMinutes: dictionaryItem.expectedWorkMinutes,
         impliedBaseCode: dictionaryItem.impliedBaseCode,
+        requiresDigitalPjk: dictionaryItem.requiresDigitalPjk,
+        digitalPjkReason: dictionaryItem.digitalPjkReason,
         color: dictionaryItem.color,
         description: dictionaryItem.description,
         dictionarySource: dictionaryItem.source,
@@ -2299,10 +2764,20 @@ function getShiftDictionaryAdapter_(spreadsheet) {
 }
 
 function mergeFallbackShiftDictionaryItems_(sheetItems) {
-  const mergedItems = sheetItems.slice();
-  const seenKeys = new Set(sheetItems.map((item) => getShiftDictionaryItemKey_(item)));
+  const fallbackItems = getFallbackShiftDictionaryItems_();
+  const fallbackByKey = new Map(fallbackItems.map((item) => [getShiftDictionaryItemKey_(item), item]));
+  const digitalPjkFallbackByRawCode = new Map(
+    fallbackItems
+      .filter((item) => item.requiresDigitalPjk)
+      .map((item) => [String(item.rawCode || ''), item])
+  );
+  const mergedItems = sheetItems.map((item) => mergeFallbackShiftDictionaryItemFields_(
+    item,
+    fallbackByKey.get(getShiftDictionaryItemKey_(item)) || digitalPjkFallbackByRawCode.get(String(item.rawCode || ''))
+  ));
+  const seenKeys = new Set(mergedItems.map((item) => getShiftDictionaryItemKey_(item)));
 
-  getFallbackShiftDictionaryItems_().forEach((fallbackItem) => {
+  fallbackItems.forEach((fallbackItem) => {
     const key = getShiftDictionaryItemKey_(fallbackItem);
     if (!seenKeys.has(key)) {
       mergedItems.push(fallbackItem);
@@ -2310,6 +2785,20 @@ function mergeFallbackShiftDictionaryItems_(sheetItems) {
   });
 
   return mergedItems;
+}
+
+function mergeFallbackShiftDictionaryItemFields_(sheetItem, fallbackItem) {
+  if (!fallbackItem || !fallbackItem.requiresDigitalPjk) {
+    return sheetItem;
+  }
+
+  return createShiftDictionaryItem_(Object.assign({}, sheetItem, {
+    requiresDigitalPjk: true,
+    digitalPjkReason: sheetItem.digitalPjkReason || fallbackItem.digitalPjkReason,
+    locationCode: sheetItem.locationCode || fallbackItem.locationCode,
+    expectedWorkMinutes: sheetItem.expectedWorkMinutes || fallbackItem.expectedWorkMinutes,
+    description: sheetItem.description || fallbackItem.description,
+  }));
 }
 
 function getShiftDictionaryItemKey_(item) {
@@ -2358,6 +2847,8 @@ function readShiftDictionaryItemsFromSheet_(sheet) {
       end: getDictionaryCellValue_(row, headerMap, 'end'),
       expectedWorkMinutes: getDictionaryCellValue_(row, headerMap, 'expectedWorkMinutes'),
       impliedBaseCode: getDictionaryCellValue_(row, headerMap, 'impliedBaseCode'),
+      requiresDigitalPjk: parseDictionaryBoolean_(getDictionaryCellValue_(row, headerMap, 'requiresDigitalPjk')),
+      digitalPjkReason: getDictionaryCellValue_(row, headerMap, 'digitalPjkReason'),
       color: getDictionaryCellValue_(row, headerMap, 'color'),
       description: getDictionaryCellValue_(row, headerMap, 'description'),
       source: {
@@ -2384,6 +2875,8 @@ function buildShiftDictionaryHeaderMap_(headerRow) {
     end: ['end', 'endtime', 'end_time', 'จบ', 'เวลาจบ'],
     expectedWorkMinutes: ['expectedworkminutes', 'expected_work_minutes', 'workminutes', 'work_minutes', 'นาทีทำงาน'],
     impliedBaseCode: ['impliedbasecode', 'implied_base_code', 'basecode', 'base_code', 'รหัสพื้นฐาน'],
+    requiresDigitalPjk: ['requiresdigitalpjk', 'requires_digital_pjk', 'digitalpjk', 'pjk', 'ภจก1', 'ภจก.1'],
+    digitalPjkReason: ['digitalpjkreason', 'digital_pjk_reason', 'pjkreason', 'เหตุผลภจก1', 'เหตุผลภจก.1'],
     color: ['color', 'colour', 'สี'],
     description: ['description', 'desc', 'รายละเอียด', 'คำอธิบาย'],
   };
@@ -2414,6 +2907,18 @@ function getDictionaryCellValue_(row, headerMap, field) {
   return String(row[index] || '').trim();
 }
 
+function parseDictionaryBoolean_(value) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!text) {
+    return false;
+  }
+
+  return ['1', 'true', 'yes', 'y', 'ใช่', 'yes/true'].indexOf(text) !== -1 ||
+    text.indexOf('ต้อง') !== -1 ||
+    text.indexOf('ภจก') !== -1 ||
+    text.indexOf('pjk') !== -1;
+}
+
 // Fallback adapter keeps the normalized layer useful before a real dictionary sheet exists.
 function getFallbackShiftDictionaryItems_() {
   return [
@@ -2422,9 +2927,7 @@ function getFallbackShiftDictionaryItems_() {
     createShiftDictionaryItem_({ rawCode: '2', roleGroup: 'any', displayLabel: '2', displayMode: 'single', segmentType: 'regular', start: '11:00', end: '20:00', description: 'ทำงาน 11.00-20.00' }),
     createShiftDictionaryItem_({ rawCode: '1/3H', roleGroup: 'any', displayLabel: '1/3H', displayMode: 'addon', segmentType: 'ot', start: '17:00', end: '20:00', impliedBaseCode: '1', description: 'OT 17.00-20.00' }),
     createShiftDictionaryItem_({ rawCode: 'O-1', roleGroup: 'senior_pharmacist', displayLabel: 'O-1', displayMode: 'base', segmentType: 'office', locationCode: 'office', start: '08:00', breakStart: '12:00', breakEnd: '13:00', end: '17:00', expectedWorkMinutes: 480, color: '#f8fafc', description: 'ทำงานสำนักงาน 08.00-17.00 พัก 12.00-13.00' }),
-    createShiftDictionaryItem_({ rawCode: '4H-1', roleGroup: 'senior_pharmacist', displayLabel: '4H-1', displayMode: 'composite', segmentType: 'branch_ot', locationCode: '001', start: '17:00', end: '21:00', impliedBaseCode: 'O-1', description: 'สำนักงาน + สาขา 001 17.00-21.00' }),
-    createShiftDictionaryItem_({ rawCode: '3H-4', roleGroup: 'senior_pharmacist', displayLabel: '3H-4', displayMode: 'composite', segmentType: 'branch_ot', locationCode: '004', start: '17:00', end: '20:00', impliedBaseCode: 'O-1', description: 'สำนักงาน + สาขา 004 17.00-20.00' }),
-    createShiftDictionaryItem_({ rawCode: '11H-3', roleGroup: 'senior_pharmacist', displayLabel: '11H-3', displayMode: 'single', segmentType: 'branch', locationCode: '003', description: 'สาขา 003 รวม 11 ชั่วโมง' }),
+    ...getFallbackDigitalPjkShiftDictionaryItems_(),
     createShiftDictionaryItem_({ rawCode: 'AL1', roleGroup: 'any', displayLabel: 'AL1', displayMode: 'leave', segmentType: 'leave', description: 'ลาพักร้อน' }),
     createShiftDictionaryItem_({ rawCode: 'AL2', roleGroup: 'any', displayLabel: 'AL2', displayMode: 'leave', segmentType: 'leave', description: 'ลาพักร้อน' }),
     createShiftDictionaryItem_({ rawCode: 'AL3', roleGroup: 'any', displayLabel: 'AL3', displayMode: 'leave', segmentType: 'leave', description: 'ลาพักร้อน' }),
@@ -2442,6 +2945,41 @@ function getFallbackShiftDictionaryItems_() {
     createShiftDictionaryItem_({ rawCode: 'Off5', roleGroup: 'any', displayLabel: 'Off5', displayMode: 'off', segmentType: 'off', description: 'วันหยุด' }),
     createShiftDictionaryItem_({ rawCode: 'Off6', roleGroup: 'any', displayLabel: 'Off6', displayMode: 'off', segmentType: 'off', description: 'วันหยุด' }),
   ];
+}
+
+function getFallbackDigitalPjkShiftDictionaryItems_() {
+  return [
+    createDigitalPjkShiftDictionaryItem_('12H-1', 12, '001', '08:00', '21:00'),
+    createDigitalPjkShiftDictionaryItem_('11H-3', 11, '003', '08:00', '20:00'),
+    createDigitalPjkShiftDictionaryItem_('11H-4', 11, '004', '08:00', '20:00'),
+    createDigitalPjkShiftDictionaryItem_('11H-5', 11, '005', '08:00', '20:00'),
+    createDigitalPjkShiftDictionaryItem_('8H-1', 8, '001', '08:00', '17:00'),
+    createDigitalPjkShiftDictionaryItem_('8H-3', 8, '003', '08:00', '17:00'),
+    createDigitalPjkShiftDictionaryItem_('8H-4', 8, '004', '08:00', '17:00'),
+    createDigitalPjkShiftDictionaryItem_('8H-5', 8, '005', '08:00', '17:00'),
+    createDigitalPjkShiftDictionaryItem_('4H-1', 4, '001', '17:00', '21:00'),
+    createDigitalPjkShiftDictionaryItem_('3H-3', 3, '003', '17:00', '20:00'),
+    createDigitalPjkShiftDictionaryItem_('3H-4', 3, '004', '17:00', '20:00'),
+    createDigitalPjkShiftDictionaryItem_('3H-5', 3, '005', '17:00', '20:00'),
+  ];
+}
+
+function createDigitalPjkShiftDictionaryItem_(rawCode, workHours, locationCode, start, end) {
+  const timeText = start && end ? ` เวลา ${start}-${end}` : '';
+  return createShiftDictionaryItem_({
+    rawCode,
+    roleGroup: 'any',
+    displayLabel: rawCode,
+    displayMode: 'single',
+    segmentType: 'branch_part_time',
+    locationCode,
+    start: start || '',
+    end: end || '',
+    expectedWorkMinutes: workHours * 60,
+    requiresDigitalPjk: true,
+    digitalPjkReason: DIGITAL_PJK_REQUIRED_REASON,
+    description: `${workHours} ชั่วโมงที่สาขา ${locationCode}${timeText}; ${DIGITAL_PJK_REQUIRED_REASON}`,
+  });
 }
 
 function createShiftDictionaryItem_(item) {
@@ -2462,6 +3000,8 @@ function createShiftDictionaryItem_(item) {
     end: item.end || '',
     expectedWorkMinutes: item.expectedWorkMinutes || '',
     impliedBaseCode: item.impliedBaseCode || '',
+    requiresDigitalPjk: Boolean(item.requiresDigitalPjk),
+    digitalPjkReason: item.digitalPjkReason || '',
     color: item.color || '',
     description: item.description || '',
     source: item.source || {
@@ -2640,6 +3180,8 @@ function buildShiftMetaByCell_(scheduleEntries) {
       end: entry.end,
       expectedWorkMinutes: entry.expectedWorkMinutes,
       impliedBaseCode: entry.impliedBaseCode,
+      requiresDigitalPjk: entry.requiresDigitalPjk,
+      digitalPjkReason: entry.digitalPjkReason,
       color: entry.color,
       description: entry.description,
       dictionarySource: entry.dictionarySource,
@@ -2765,4 +3307,109 @@ function toA1_(row, column) {
   }
 
   return `${columnName}${row}`;
+}
+
+function loginToDigitalPjk() {
+  const cachedToken = getCachedDigitalPjkToken_();
+  if (cachedToken) {
+    return cachedToken;
+  }
+
+  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}/auth/login`, {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify({
+      username: DIGITAL_PJK_USERNAME,
+      password: DIGITAL_PJK_PASSWORD,
+    }),
+    muteHttpExceptions: true,
+  });
+
+  const statusCode = response.getResponseCode();
+  const responseText = response.getContentText();
+  if (statusCode !== 200) {
+    throw new Error(`DigitalPJK login failed (${statusCode}): ${responseText}`);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (error) {
+    throw new Error(`DigitalPJK login returned invalid JSON: ${responseText}`);
+  }
+
+  const token = data && data.token ? String(data.token) : '';
+  if (!token) {
+    throw new Error(`DigitalPJK login response did not include token: ${responseText}`);
+  }
+
+  cacheDigitalPjkToken_(token);
+  return token;
+}
+
+function generateDigitalPjkSampleDocument(sheetName) {
+  const sourceSheetName = sheetName || SHEET_NAME;
+  return generateDigitalPjkDocument({
+    templateKey: 'form_gor_gor_1',
+    formData: {
+      addressNo: '123/45',
+      soi: '-',
+      customNote: 'สร้างตัวอย่างจาก ClaspSCShift: ' + sourceSheetName,
+    },
+    subPharmacistSlots: [
+      {
+        pharmacistName: 'ภก. ชวิศ ดิษฐาพร',
+        pharmacistLicense: '45976',
+      },
+    ],
+  });
+}
+
+function testGenerateDigitalPjkDocument() {
+  return generateDigitalPjkSampleDocument(SHEET_NAME);
+}
+
+function getCachedDigitalPjkToken_() {
+  const properties = PropertiesService.getScriptProperties();
+  const token = properties.getProperty(DIGITAL_PJK_TOKEN_PROPERTY);
+  const timestampText = properties.getProperty(DIGITAL_PJK_TOKEN_TS_PROPERTY);
+  const timestamp = Number(timestampText || 0);
+
+  if (!token || !timestamp) {
+    return '';
+  }
+
+  if (Date.now() - timestamp >= DIGITAL_PJK_TOKEN_TTL_MS) {
+    clearDigitalPjkTokenCache_();
+    return '';
+  }
+
+  return token;
+}
+
+function cacheDigitalPjkToken_(token) {
+  PropertiesService.getScriptProperties().setProperties({
+    [DIGITAL_PJK_TOKEN_PROPERTY]: token,
+    [DIGITAL_PJK_TOKEN_TS_PROPERTY]: String(Date.now()),
+  });
+}
+
+function clearDigitalPjkTokenCache_() {
+  const properties = PropertiesService.getScriptProperties();
+  properties.deleteProperty(DIGITAL_PJK_TOKEN_PROPERTY);
+  properties.deleteProperty(DIGITAL_PJK_TOKEN_TS_PROPERTY);
+}
+
+function getDigitalPjkResponseHeader_(response, headerName) {
+  const target = String(headerName || '').toLowerCase();
+  const headers = response.getAllHeaders ? response.getAllHeaders() : response.getHeaders();
+
+  for (const key in headers) {
+    if (Object.prototype.hasOwnProperty.call(headers, key) && String(key).toLowerCase() === target) {
+      const value = headers[key];
+      return Array.isArray(value) ? String(value[0] || '') : String(value || '');
+    }
+  }
+
+  return '';
 }

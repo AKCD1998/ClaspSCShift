@@ -26,8 +26,9 @@ Main files:
 - `Index.html`: Web app UI. It calls `google.script.run.getWorksheetWebAppData()`
   and renders a spreadsheet-like table with a loading overlay while data is
   being fetched.
-- `appsscript.json`: Apps Script manifest. It currently requests spreadsheet
-  access because the script opens the target spreadsheet by ID.
+- `appsscript.json`: Apps Script manifest. It requests spreadsheet access,
+  external HTTP requests for DigitalPJK, and Drive access for saving generated
+  PDF previews.
 - `.claspignore`: Limits pushed files to Apps Script-compatible files.
 
 Important server functions:
@@ -111,7 +112,8 @@ Current implementation status:
    ```
 
    If `clasp` asks whether to overwrite `appsscript.json`, keep this local
-   file. It contains the spreadsheet OAuth scope needed by `openById()`.
+   file. It contains the OAuth scopes needed by `openById()`, DigitalPJK API
+   calls, and PDF file creation in Drive.
 
 4. Push the local files:
 

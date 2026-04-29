@@ -463,7 +463,20 @@ function resolveDigitalPjkPartTimePharmacist_(employeeName, pharmacistMap) {
     return null;
   }
 
-  return pharmacistMap[normalizedName] || pharmacistMap[removeThaiPharmacistTitle_(normalizedName)] || null;
+  const normalizedAlias = resolveDigitalPjkNameAlias_(normalizedName);
+  return pharmacistMap[normalizedName] ||
+    pharmacistMap[removeThaiPharmacistTitle_(normalizedName)] ||
+    pharmacistMap[normalizedAlias] ||
+    pharmacistMap[removeThaiPharmacistTitle_(normalizedAlias)] ||
+    null;
+}
+
+function resolveDigitalPjkNameAlias_(normalizedName) {
+  const aliases = {
+    'ธนัพลแสงทับทิม': 'ธนพลแสงทับทิม',
+  };
+
+  return aliases[normalizedName] || normalizedName;
 }
 
 function getDigitalPjkBranchMap_(token) {
@@ -498,35 +511,6 @@ function getDigitalPjkPartTimePharmacistMap_(token) {
 
     return map;
   }, {});
-
-  // เพิ่ม Mapping เลขใบอนุญาตประกอบวิชาชีพของพนักงานแบบ Hardcode 
-  // เพื่อป้องกันข้อมูลที่ขาดหายหรือพิมพ์ผิดจาก DB ต้นทาง
-  const manualOverrides = [
-    { displayName: 'ภก. ชวิศ ดิษฐาพร', name: 'ชวิศ ดิษฐาพร', licenseNumber: '45976' },
-    { displayName: 'ภญ. ทิพวรรณ เรืองสุข', name: 'ทิพวรรณ เรืองสุข', licenseNumber: '38604' },
-    { displayName: 'ภก. ธนพล แสงทับทิม', name: 'ธนพล แสงทับทิม', licenseNumber: '40596' },
-  ];
-
-  manualOverrides.forEach((manual) => {
-    const keys = [manual.displayName, manual.name];
-    keys.forEach((key) => {
-      const normalizedKey = normalizeHumanName_(key);
-      if (normalizedKey) {
-        pharmacistMap[normalizedKey] = { displayName: manual.displayName, licenseNumber: manual.licenseNumber };
-        pharmacistMap[removeThaiPharmacistTitle_(normalizedKey)] = { displayName: manual.displayName, licenseNumber: manual.licenseNumber };
-      }
-    });
-  });
-
-  // ลบชื่อที่พิมพ์ผิดพลาด (ธนัพล) ออกจาก List เลย เผื่อมีหลุดมาจากแหล่งข้อมูลอื่น
-  const typoKeys = ['ธนัพล', 'ภก. ธนัพล', 'ธนัพล แสงทับทิม'];
-  typoKeys.forEach((typoKey) => {
-    const normalizedKey = normalizeHumanName_(typoKey);
-    if (normalizedKey) {
-      delete pharmacistMap[normalizedKey];
-      delete pharmacistMap[removeThaiPharmacistTitle_(normalizedKey)];
-    }
-  });
 
   return pharmacistMap;
 }

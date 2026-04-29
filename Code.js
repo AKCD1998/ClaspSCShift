@@ -445,12 +445,25 @@ function buildDigitalPjkSlotsFromEntries_(entries, pharmacistMap, warnings) {
       return 1; // A ทำหลายวัน ให้อยู่หลัง B ที่ทำวันเดียว
     }
 
-    // 3. ถ้าช่วงเวลาหลายวันเหมือนกัน ให้เรียงตามวันที่สิ้นสุด
+    // 3. ถ้าเป็นวันเดียวกันทั้งคู่ ให้เวรเช้าขึ้นก่อนเวรเย็น
+    if (aIsSingleDay && bIsSingleDay) {
+      const startTimeCompare = compareDigitalPjkTime_(a.timeStart, b.timeStart);
+      if (startTimeCompare !== 0) {
+        return startTimeCompare;
+      }
+
+      const endTimeCompare = compareDigitalPjkTime_(a.timeEnd, b.timeEnd);
+      if (endTimeCompare !== 0) {
+        return endTimeCompare;
+      }
+    }
+
+    // 4. ถ้าช่วงเวลาหลายวันเหมือนกัน ให้เรียงตามวันที่สิ้นสุด
     if (a.dateEnd !== b.dateEnd) {
       return String(a.dateEnd).localeCompare(String(b.dateEnd));
     }
 
-    // 4. กรณีทุกอย่างเหมือนกันให้เรียงตามชื่อ
+    // 5. กรณีทุกอย่างเหมือนกันให้เรียงตามชื่อ
     return String(a.pharmacistName).localeCompare(String(b.pharmacistName));
   });
 
@@ -565,6 +578,37 @@ function areConsecutiveIsoDates_(previousIsoDate, nextIsoDate) {
   const previousDate = new Date(`${previousIsoDate}T00:00:00Z`);
   const nextDate = new Date(`${nextIsoDate}T00:00:00Z`);
   return nextDate.getTime() - previousDate.getTime() === 24 * 60 * 60 * 1000;
+}
+
+function compareDigitalPjkTime_(leftTime, rightTime) {
+  const leftMinutes = parseDigitalPjkTimeMinutes_(leftTime);
+  const rightMinutes = parseDigitalPjkTimeMinutes_(rightTime);
+  if (leftMinutes === rightMinutes) {
+    return 0;
+  }
+  if (leftMinutes === null) {
+    return 1;
+  }
+  if (rightMinutes === null) {
+    return -1;
+  }
+  return leftMinutes - rightMinutes;
+}
+
+function parseDigitalPjkTimeMinutes_(value) {
+  const text = String(value || '').trim();
+  const match = text.match(/^(\d{1,2})[:.](\d{2})$/);
+  if (!match) {
+    return null;
+  }
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return null;
+  }
+
+  return hour * 60 + minute;
 }
 
 function chunkArray_(items, size) {

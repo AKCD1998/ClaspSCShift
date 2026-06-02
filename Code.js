@@ -27,9 +27,10 @@ const REGULAR_OFF_BACKGROUNDS = ['#00a9e0', '#00b0f0', '#00ace6'];
 const PUBLIC_HOLIDAY_BACKGROUNDS = ['#bf9000', '#c49a00', '#c79a00', '#cc9900'];
 const MAX_PUBLIC_HOLIDAY_LEAVE_COUNT = 13;
 const MAX_ANNUAL_LEAVE_COUNT = 6;
-const DIGITAL_PJK_BASE_URL = 'https://digitalpjkform.onrender.com/api';
+const DIGITAL_PJK_BASE_URL = 'https://sc-official-website.onrender.com/api/digitalpjk';
 const DIGITAL_PJK_USERNAME = 'admin000';
 const DIGITAL_PJK_PASSWORD = 'S123123c';
+const DIGITAL_PJK_BASE_URL_PROPERTY = 'DIGITAL_PJK_BASE_URL';
 const DIGITAL_PJK_TOKEN_PROPERTY = 'DIGITAL_PJK_ADMIN_JWT';
 const DIGITAL_PJK_TOKEN_TS_PROPERTY = 'DIGITAL_PJK_ADMIN_JWT_TS';
 const DIGITAL_PJK_TOKEN_TTL_MS = 50 * 60 * 1000;
@@ -65,6 +66,8 @@ function getWorksheetWebAppData(sheetName) {
   const verticalAlignments = range.getVerticalAlignments();
   const normalizedModel = buildNormalizedScheduleModel_(spreadsheet, sheet, values);
   const shiftMetaByCell = buildShiftMetaByCell_(normalizedModel.scheduleEntries);
+  const rowCount = values.length;
+  const columnCount = values[0] ? values[0].length : 0;
 
   return {
     spreadsheetName: spreadsheet.getName(),
@@ -72,8 +75,9 @@ function getWorksheetWebAppData(sheetName) {
     sheetName: sheet.getName(),
     sheetId: sheet.getSheetId(),
     fetchedAt: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss'),
-    rowCount: values.length,
-    columnCount: values[0] ? values[0].length : 0,
+    rowCount,
+    columnCount,
+    columnWidths: getWorksheetColumnWidths_(sheet, columnCount),
     monthOptions: getScheduleMonthOptions_(spreadsheet, targetSheetName),
     shiftDictionarySource: normalizedModel.shiftDictionarySource,
     shiftDictionaryItems: normalizedModel.shiftDictionaryItems,
@@ -304,7 +308,7 @@ function generateDigitalPjkPdf_(path, payload, validationLabel) {
   }
 
   const token = loginToDigitalPjk();
-  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}${path}`, {
+  const response = fetchDigitalPjkResponse_(path, {
     method: 'post',
     contentType: 'application/json',
     headers: {
@@ -312,17 +316,8 @@ function generateDigitalPjkPdf_(path, payload, validationLabel) {
     },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true,
-  });
-
+  }, 'DigitalPJK document generation');
   const statusCode = response.getResponseCode();
-  if (statusCode !== 200) {
-    const responseText = response.getContentText();
-    if (statusCode === 401) {
-      clearDigitalPjkTokenCache_();
-    }
-
-    throw new Error(`DigitalPJK document generation failed (${statusCode}): ${responseText}`);
-  }
 
   const documentId = getDigitalPjkResponseHeader_(response, 'X-Document-Id');
   const contentType = getDigitalPjkResponseHeader_(response, 'Content-Type') || 'application/pdf';
@@ -529,22 +524,14 @@ function getDigitalPjkPartTimePharmacistMap_(token) {
 }
 
 function fetchDigitalPjkJson_(path, token, label) {
-  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}${path}`, {
+  const response = fetchDigitalPjkResponse_(path, {
     method: 'get',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     muteHttpExceptions: true,
-  });
-  const statusCode = response.getResponseCode();
+  }, label);
   const responseText = response.getContentText();
-
-  if (statusCode !== 200) {
-    if (statusCode === 401) {
-      clearDigitalPjkTokenCache_();
-    }
-    throw new Error(`${label} failed (${statusCode}): ${responseText}`);
-  }
 
   try {
     return JSON.parse(responseText);
@@ -3280,6 +3267,15 @@ function getMergeMeta_(range) {
   }));
 }
 
+function getWorksheetColumnWidths_(sheet, columnCount) {
+  const widths = [];
+  for (let column = 1; column <= columnCount; column += 1) {
+    widths.push(sheet.getColumnWidth(column));
+  }
+
+  return widths;
+}
+
 function getSectionLabel_(row) {
   const label = (row[1] || '').trim();
   const hasName = (row[2] || '').trim();
@@ -3343,7 +3339,7 @@ function loginToDigitalPjk() {
     return cachedToken;
   }
 
-  const response = UrlFetchApp.fetch(`${DIGITAL_PJK_BASE_URL}/auth/login`, {
+  const response = fetchDigitalPjkResponse_('/auth/login', {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify({
@@ -3351,13 +3347,8 @@ function loginToDigitalPjk() {
       password: DIGITAL_PJK_PASSWORD,
     }),
     muteHttpExceptions: true,
-  });
-
-  const statusCode = response.getResponseCode();
+  }, 'DigitalPJK login');
   const responseText = response.getContentText();
-  if (statusCode !== 200) {
-    throw new Error(`DigitalPJK login failed (${statusCode}): ${responseText}`);
-  }
 
   let data;
   try {
@@ -3373,6 +3364,108 @@ function loginToDigitalPjk() {
 
   cacheDigitalPjkToken_(token);
   return token;
+}
+
+function getDigitalPjkBaseUrl_() {
+  const configured = String(
+    PropertiesService.getScriptProperties().getProperty(DIGITAL_PJK_BASE_URL_PROPERTY) || ''
+  ).trim();
+  const baseUrl = configured || DIGITAL_PJK_BASE_URL;
+  return String(baseUrl).replace(/\/+$/, '');
+}
+
+function fetchDigitalPjkResponse_(path, options, label) {
+  const baseUrl = getDigitalPjkBaseUrl_();
+  const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${path}`;
+  const response = UrlFetchApp.fetch(`${baseUrl}${normalizedPath}`, options || {});
+  const statusCode = response.getResponseCode();
+
+  if (statusCode >= 200 && statusCode < 300) {
+    return response;
+  }
+
+  if (statusCode === 401) {
+    clearDigitalPjkTokenCache_();
+  }
+
+  throw new Error(buildDigitalPjkHttpErrorMessage_(label, statusCode, response, baseUrl, normalizedPath));
+}
+
+function buildDigitalPjkHttpErrorMessage_(label, statusCode, response, baseUrl, path) {
+  const responseText = getDigitalPjkResponseText_(response);
+  const contentType = (getDigitalPjkResponseHeader_(response, 'Content-Type') || '').toLowerCase();
+  const jsonError = extractDigitalPjkJsonError_(responseText, contentType);
+  const rawSummary = summarizeDigitalPjkResponseBody_(responseText, contentType);
+  const locationSummary = `${baseUrl}${path}`;
+
+  if (statusCode === 503) {
+    if (/service suspended/i.test(responseText) || /<html/i.test(responseText)) {
+      return `${label} failed (503). The configured DigitalPJK backend is unavailable or suspended at ${locationSummary}. Update ${DIGITAL_PJK_BASE_URL_PROPERTY} or verify the shared Render service is running.`;
+    }
+
+    return `${label} failed (503). The DigitalPJK shared backend is unavailable at ${locationSummary}${jsonError ? `: ${jsonError}` : rawSummary ? `: ${rawSummary}` : ''}`;
+  }
+
+  if (statusCode >= 500) {
+    return `${label} failed (${statusCode}). The DigitalPJK shared backend returned a server error at ${locationSummary}${jsonError ? `: ${jsonError}` : rawSummary ? `: ${rawSummary}` : ''}`;
+  }
+
+  return `${label} failed (${statusCode})${jsonError ? `: ${jsonError}` : rawSummary ? `: ${rawSummary}` : ''}`;
+}
+
+function getDigitalPjkResponseText_(response) {
+  try {
+    return String(response.getContentText() || '');
+  } catch (error) {
+    return '';
+  }
+}
+
+function extractDigitalPjkJsonError_(responseText, contentType) {
+  const looksLikeJson = contentType.indexOf('application/json') !== -1 || /^[\[{]/.test(String(responseText || '').trim());
+  if (!looksLikeJson) {
+    return '';
+  }
+
+  try {
+    const parsed = JSON.parse(responseText);
+    if (parsed && typeof parsed === 'object') {
+      if (parsed.error) {
+        return String(parsed.error);
+      }
+      if (parsed.message) {
+        return String(parsed.message);
+      }
+    }
+  } catch (error) {
+    return '';
+  }
+
+  return '';
+}
+
+function summarizeDigitalPjkResponseBody_(responseText, contentType) {
+  const text = String(responseText || '').trim();
+  if (!text) {
+    return '';
+  }
+
+  if (contentType.indexOf('text/html') !== -1 || /^</.test(text)) {
+    const titleMatch = text.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+      return titleMatch[1].trim();
+    }
+
+    const bodyText = text
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return bodyText.slice(0, 160);
+  }
+
+  return text.slice(0, 160);
 }
 
 function generateDigitalPjkSampleDocument(sheetName) {

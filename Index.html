@@ -312,7 +312,7 @@
         height: 34px;
         line-height: 1.25;
         max-width: 280px;
-        min-width: 76px;
+        min-width: 0;
         overflow: hidden;
         padding: 5px 7px;
         text-overflow: ellipsis;
@@ -497,42 +497,17 @@
       }
 
       .cell-sequence {
-        min-width: 64px;
         text-align: center;
       }
 
-      .cell-name {
-        min-width: 174px;
-      }
-
-      .cell-nickname {
-        min-width: 86px;
-      }
-
-      .cell-date {
-        min-width: 140px;
-      }
-
-      .cell-position {
-        min-width: 190px;
-      }
-
-      .cell-team {
-        min-width: 140px;
-      }
-
       .cell-day {
-        min-width: var(--schedule-day-width);
+        padding-left: 2px;
+        padding-right: 2px;
         width: var(--schedule-day-width);
         text-align: center;
       }
 
-      .cell-note {
-        min-width: 260px;
-      }
-
       .cell-spacer {
-        min-width: 22px;
         width: 22px;
       }
 
@@ -546,7 +521,7 @@
       }
 
       .cell-name.sticky-col {
-        left: 64px;
+        left: var(--sequence-col-width);
       }
 
       .metadata-row td,
@@ -625,7 +600,7 @@
 
       .shift-cell {
         background: #f2f6f8 !important;
-        padding: 4px;
+        padding: 0 2px;
         text-align: center;
       }
 
@@ -638,13 +613,15 @@
         border-radius: 6px;
         color: var(--badge-text, #ffffff) !important;
         display: inline-flex;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 800;
         justify-content: center;
-        line-height: 1.1;
-        min-height: 22px;
-        min-width: 48px;
-        padding: 4px 7px;
+        line-height: 1.15;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+        padding: 0 1px;
+        text-overflow: clip;
         transition: box-shadow 120ms ease, transform 120ms ease;
         width: 100%;
       }
@@ -1875,6 +1852,7 @@
         state.currentData = data;
         state.currentSheetName = data.sheetName;
         state.monthOptions = data.monthOptions || [];
+        syncSheetColumnMetrics(data);
         updateScheduleColumnBounds(data);
         state.noteSectionAvailable = hasNoteSection(data);
         elements.pageTitle.textContent = 'ตารางเวร';
@@ -1924,7 +1902,7 @@
           table.className = options.tableClassName;
         }
 
-        table.appendChild(buildWorksheetColGroup(data.columnCount || 0));
+        table.appendChild(buildWorksheetColGroup(data));
         const body = document.createElement('tbody');
         let activeSection = '';
 
@@ -1982,12 +1960,14 @@
         return table;
       }
 
-      function buildWorksheetColGroup(columnCount) {
+      function buildWorksheetColGroup(data) {
         const colGroup = document.createElement('colgroup');
+        const columnCount = data.columnCount || 0;
 
         for (let column = 1; column <= columnCount; column += 1) {
           const col = document.createElement('col');
           col.className = getColumnClass(column);
+          col.style.width = `${getRenderedColumnWidth(data, column)}px`;
           colGroup.appendChild(col);
         }
 
@@ -5429,6 +5409,74 @@
           '--roster-width',
           `${Math.ceil(minimumWidth)}px`,
         );
+      }
+
+      function syncSheetColumnMetrics(data) {
+        const root = document.documentElement;
+        root.style.setProperty('--sheet-margin-width', `${getRenderedColumnWidth(data, 1)}px`);
+        root.style.setProperty('--sequence-col-width', `${getRenderedColumnWidth(data, 2)}px`);
+        root.style.setProperty('--name-col-width', `${getRenderedColumnWidth(data, 3)}px`);
+        root.style.setProperty('--nickname-col-width', `${getRenderedColumnWidth(data, 4)}px`);
+        root.style.setProperty('--date-col-width', `${getRenderedColumnWidth(data, 5)}px`);
+        root.style.setProperty('--position-col-width', `${getRenderedColumnWidth(data, 6)}px`);
+        root.style.setProperty('--team-col-width', `${getRenderedColumnWidth(data, 7)}px`);
+        root.style.setProperty('--schedule-day-width', `${getRenderedColumnWidth(data, state.scheduleStartColumn)}px`);
+      }
+
+      function getRenderedColumnWidth(data, column) {
+        if (column === 1) {
+          return 0;
+        }
+
+        const widths = data && Array.isArray(data.columnWidths) ? data.columnWidths : [];
+        const width = Number(widths[column - 1]);
+        if (Number.isFinite(width) && width >= 0) {
+          return Math.round(width);
+        }
+
+        return getFallbackColumnWidth(column);
+      }
+
+      function getFallbackColumnWidth(column) {
+        if (column === 2) {
+          return readCssPixelVariable('--sequence-col-width') || 64;
+        }
+
+        if (column === 3) {
+          return readCssPixelVariable('--name-col-width') || 174;
+        }
+
+        if (column === 4) {
+          return readCssPixelVariable('--nickname-col-width') || 86;
+        }
+
+        if (column === 5) {
+          return readCssPixelVariable('--date-col-width') || 140;
+        }
+
+        if (column === 6) {
+          return readCssPixelVariable('--position-col-width') || 190;
+        }
+
+        if (column === 7) {
+          return readCssPixelVariable('--team-col-width') || 140;
+        }
+
+        if (column >= state.scheduleStartColumn && column <= state.scheduleEndColumn) {
+          return readCssPixelVariable('--schedule-day-width') || 60;
+        }
+
+        if (column >= state.noteStartColumn) {
+          return readCssPixelVariable('--note-col-width') || 260;
+        }
+
+        return readCssPixelVariable('--spacer-col-width') || 22;
+      }
+
+      function readCssPixelVariable(name) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+        const pixels = Number.parseFloat(value);
+        return Number.isFinite(pixels) ? pixels : 0;
       }
 
       function syncTableWrapScrollMode() {
